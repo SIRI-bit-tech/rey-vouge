@@ -13,9 +13,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
-from decouple import config
-import dj_database_url
 
 load_dotenv()
 
@@ -100,7 +101,7 @@ WSGI_APPLICATION = 'rey_vogue.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
+    'default': env.db('DATABASE_URL')  # This will read the DATABASE_URL from your .env file
 }
 
 
