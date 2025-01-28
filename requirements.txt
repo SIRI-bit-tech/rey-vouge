@@ -58,7 +58,7 @@ requests-toolbelt==1.0.0
 shellingham==1.5.4
 sqlparse==0.5.3
 tomli==2.2.1
-tomli_w==0.13.2
+tomli-w==1.2.0
 trove-classifiers==2025.1.15.22
 typing_extensions==4.12.2
 tzdata==2024.2
