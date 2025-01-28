@@ -6,7 +6,7 @@ certifi==2024.12.14
 cffi==1.17.1
 charset-normalizer==3.4.1
 cleo==2.1.0
-colorama==0.4.6
+colorama==4.6
 crashtest==0.4.1
 crispy-tailwind==0.5.0
 cryptography==44.0.0
@@ -25,7 +25,7 @@ fastjsonschema==2.21.1
 filelock==3.17.0
 gunicorn==21.2.0
 idna==3.10
-importlib_metadata==8.6.1
+importlib-metadata==8.6.1
 installer==0.7.0
 jaraco.classes==3.4.0
 jaraco.context==6.0.1
@@ -58,7 +58,7 @@ requests-toolbelt==1.0.0
 shellingham==1.5.4
 sqlparse==0.5.3
 tomli==2.2.1
-tomlkit==0.13.2
+tomli_w==0.13.2
 trove-classifiers==2025.1.15.22
 typing_extensions==4.12.2
 tzdata==2024.2
