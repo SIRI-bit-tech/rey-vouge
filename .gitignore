@@ -16,27 +16,12 @@ __pycache__/
 *.sqlite3
 db.sqlite3
 
-# Media folder
+# Media folder - only keep folder structure
 /media/*
-
-# Explicitly include categories and product folders and their contents
-!/media/categories/
-/media/categories/*
-!/media/product/
-/media/product/*
-
-# Ignore images inside categories and product folders
-/media/categories/*.png
-/media/categories/*.jpg
-/media/categories/*.jpeg
-/media/categories/*.gif
-/media/categories/*.svg
-
-/media/product/*.png
-/media/product/*.jpg
-/media/product/*.jpeg
-/media/product/*.gif
-/media/product/*.svg
+!media/categories/
+!media/products/
+media/categories/*
+media/products/*
 
 # Virtual Environment
 venv/

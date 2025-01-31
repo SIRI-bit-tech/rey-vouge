@@ -1,9 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}REY PREMIUM VOGUE{% endblock %}</title>
+
+
+    <link rel="icon" type="image/png" href="{% static 'images/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}" />
+    <meta name="apple-mobile-web-app-title" content="reyvouge" />
+    <link rel="manifest" href="{% static 'images/site.webmanifest' %}" />
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -123,16 +132,14 @@
                     <!-- Wishlist -->
                     <a href="{% url 'accounts:wishlist' %}" class="text-gray-500 hover:text-accent relative">
                         <i class="far fa-heart text-xl"></i>
-                        <span id="wishlist-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full items-center justify-center text-xs {% if not wishlist_count %}hidden{% endif %}" style="display: {% if wishlist_count %}flex{% else %}none{% endif %}">
-                            {{ wishlist_count|default:0 }}
+                        <span id="wishlist-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center text-xs {% if not wishlist_count %}hidden{% endif %}">                            {{ wishlist_count|default:0 }}
                             </span>
                     </a>
 
                     <!-- Cart -->
                     <a href="{% url 'orders:cart_detail' %}" class="text-gray-500 hover:text-accent relative">
                         <i class="fas fa-shopping-bag text-xl"></i>
-                        <span id="cart-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full items-center justify-center text-xs {% if not cart_count %}hidden{% endif %}" style="display: {% if cart_count %}flex{% else %}none{% endif %}">
-                            {{ cart_count|default:0 }}
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center text-xs {% if not cart_count %}hidden{% endif %}">                            {{ cart_count|default:0 }}
                             </span>
                     </a>
                     

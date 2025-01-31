@@ -8,6 +8,8 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from rest_framework import generics, permissions
 from rest_framework.response import Response
+import os
+from django.conf import settings
 from rest_framework.views import APIView
 from products.models import Category, Product
 from .models import (
@@ -44,12 +46,36 @@ def contact(request):
         subject = request.POST.get('subject')
         message = request.POST.get('message')
         
+        # Save to database
         ContactMessage.objects.create(
             name=name,
             email=email,
             subject=subject,
             message=message
         )
+        
+        # Send email notification to admin
+        admin_email = os.getenv('ADMIN_EMAIL')
+        email_subject = f'New Contact Message: {subject}'
+        email_message = f"""
+        New contact form submission:
+        
+        From: {name} ({email})
+        Subject: {subject}
+        Message:
+        {message}
+        """
+        
+        try:
+            send_mail(
+                subject=email_subject,
+                message=email_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[admin_email],
+                fail_silently=False
+            )
+        except Exception as e:
+            print(f"Failed to send email: {str(e)}")
         
         return JsonResponse({
             'success': True,

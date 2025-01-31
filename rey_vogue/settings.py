@@ -31,8 +31,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-here')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(" ")
-
+# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(" ")
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -169,14 +169,15 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 SITE_ID = 1
 
 # Email Configuration
+# Email Settings
+# Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = 'REY PREMIUM VOGUE <noreply@reyvogue.com>'
-ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # WhatsApp Configuration
 ADMIN_WHATSAPP = os.getenv('ADMIN_WHATSAPP')  # Format: 1234567890 (numbers only, with country code)
