@@ -16,12 +16,12 @@ __pycache__/
 *.sqlite3
 db.sqlite3
 
-# Media folder - only keep empty folder structure
+# Media folder - include categories and products with their contents
 media/*
 !media/categories/
 !media/products/
-media/categories/**/*
-media/products/**/*
+!media/categories/**
+!media/products/**
 
 # Virtual Environment
 venv/
