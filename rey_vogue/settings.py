@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
-# import dj_database_url
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -104,8 +104,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-# database_url = os.environ.get("DATABASE_URL")
-# DATABASES['default'] = dj_database_url.parse(database_url)
+database_url = os.environ.get("DATABASE_URL")
+DATABASES['default'] = dj_database_url.parse(database_url)
 
 
 
