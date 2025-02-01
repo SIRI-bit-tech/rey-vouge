@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -36,7 +37,7 @@ class CustomUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('This email address is already in use.')
-        return email
+        return email.lower()
 
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(
@@ -48,4 +49,30 @@ class CustomAuthenticationForm(AuthenticationForm):
     remember_me = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
-    ) 
+    )
+
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username and password:
+            username = username.lower()
+            self.user_cache = authenticate(
+                self.request,
+                username=username,
+                password=password
+            )
+            if self.user_cache is None:
+                raise ValidationError(
+                    'Please enter a correct email and password. Note that both fields may be case-sensitive.',
+                    code='invalid_login'
+                )
+            elif not self.user_cache.is_active:
+                raise ValidationError(
+                    'This account is inactive.',
+                    code='inactive'
+                )
+        return self.cleaned_data
+
+    def get_user(self):
+        return getattr(self, 'user_cache', None) 

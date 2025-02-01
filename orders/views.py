@@ -16,6 +16,7 @@ from django.template.loader import render_to_string
 import urllib.parse
 import json
 from django.views.decorators.http import require_POST
+from django.contrib.sites.shortcuts import get_current_site
 
 @login_required
 def cart_detail(request):
@@ -312,21 +313,23 @@ Order ID: #{order.id}"""
 
         try:
             # Send email to customer
-            customer_subject = f"Order Confirmation - REY PREMIUM VOGUE #{order.id}"
-            customer_message = render_to_string('orders/email/order_confirmation.html', {
-                'user': request.user,
-                'cart': cart,
-                'shipping': shipping,
-                'site_url': request.build_absolute_uri('/'),
+            current_site = get_current_site(request)
+            site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
+            
+            context = {
                 'order': order,
-            })
+                'site_url': site_url,
+            }
+            
+            html_message = render_to_string('orders/email/order_confirmation.html', context)
+            plain_message = render_to_string('orders/email/order_confirmation_plain.txt', context)
+            
             send_mail(
-                customer_subject,
-                '',
-                settings.DEFAULT_FROM_EMAIL,
-                [shipping.get('email', '')],
-                html_message=customer_message,
-                fail_silently=True,
+                subject=f'Order Confirmation #{order.id} - REY PREMIUM VOGUE',
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[order.user.email],
+                html_message=html_message
             )
 
             # Send email to admin
@@ -337,7 +340,7 @@ Order ID: #{order.id}"""
                     'user': request.user,
                     'cart': cart,
                     'shipping': shipping,
-                    'site_url': request.build_absolute_uri('/'),
+                    'site_url': site_url,
                     'order': order,
                 })
                 send_mail(

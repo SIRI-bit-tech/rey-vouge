@@ -207,13 +207,19 @@ class ChangePasswordAPI(APIView):
 class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = 'accounts/login.html'
-    
+    redirect_authenticated_user = True
+
     def form_valid(self, form):
         remember_me = form.cleaned_data.get('remember_me')
         if not remember_me:
+            # Session expires when browser closes
             self.request.session.set_expiry(0)
+        else:
+            # Session expires in 2 weeks
+            self.request.session.set_expiry(1209600)
+
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         next_url = self.request.GET.get('next')
         if next_url:

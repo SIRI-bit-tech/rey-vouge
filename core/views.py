@@ -21,6 +21,7 @@ from .serializers import (
     ContactMessageSerializer, PromotionSerializer,
     StoreLocationSerializer
 )
+from django.contrib.sites.shortcuts import get_current_site
 
 def home(request):
     categories = Category.objects.all()
@@ -84,6 +85,43 @@ def contact(request):
     
     return render(request, 'core/contact.html')
 
+@login_required
+def admin_newsletter(request):
+    if not request.user.is_staff:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Permission denied'
+        }, status=403)
+    
+    subscribers = NewsletterSubscriber.objects.all().order_by('-created_at')
+    context = {
+        'subscribers': subscribers,
+        'total_subscribers': subscribers.filter(is_active=True).count(),
+        'inactive_subscribers': subscribers.filter(is_active=False).count()
+    }
+    return render(request, 'core/admin/newsletter.html', context)
+
+@login_required
+def delete_subscriber(request, subscriber_id):
+    if not request.user.is_staff:
+        return JsonResponse({
+            'success': False, 
+            'message': 'Permission denied'
+        }, status=403)
+    
+    try:
+        subscriber = NewsletterSubscriber.objects.get(id=subscriber_id)
+        subscriber.delete()
+        return JsonResponse({
+            'success': True,
+            'message': f'Subscriber {subscriber.email} has been deleted'
+        })
+    except NewsletterSubscriber.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Subscriber not found'
+        }, status=404)
+
 def newsletter_subscribe(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -105,16 +143,22 @@ def newsletter_subscribe(request):
                     subscriber.save()
                     
                     # Send reactivation email
-                    subject = "Welcome Back to REY PREMIUM VOGUE Newsletter!"
-                    html_message = render_to_string('core/emails/newsletter_reactivation.html', {
-                        'email': email
-                    })
+                    current_site = get_current_site(request)
+                    site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
+                    
+                    context = {
+                        'email': email,
+                        'site_url': site_url,
+                        'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
+                    }
+                    
+                    html_message = render_to_string('core/emails/newsletter_reactivation.html', context)
                     send_mail(
-                        subject=subject,
+                        subject="Welcome Back to REY PREMIUM VOGUE Newsletter!",
                         message='',
-                        html_message=html_message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[email],
+                        html_message=html_message,
                         fail_silently=False
                     )
                     
@@ -132,16 +176,22 @@ def newsletter_subscribe(request):
                 NewsletterSubscriber.objects.create(email=email)
                 
                 # Send welcome email
-                subject = "Welcome to REY PREMIUM VOGUE Newsletter!"
-                html_message = render_to_string('core/emails/newsletter_welcome.html', {
-                    'email': email
-                })
+                current_site = get_current_site(request)
+                site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
+                
+                context = {
+                    'email': email,
+                    'site_url': site_url,
+                    'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
+                }
+                
+                html_message = render_to_string('core/emails/newsletter_welcome.html', context)
                 send_mail(
-                    subject=subject,
+                    subject="Welcome to REY PREMIUM VOGUE Newsletter!",
                     message='',
-                    html_message=html_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[email],
+                    html_message=html_message,
                     fail_silently=False
                 )
                 
@@ -191,10 +241,17 @@ def send_newsletter(request):
                 })
             
             # Prepare email template
-            html_message = render_to_string('core/emails/newsletter_update.html', {
+            current_site = get_current_site(request)
+            site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
+            
+            context = {
                 'subject': subject,
-                'content': content
-            })
+                'content': content,
+                'site_url': site_url,
+                'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
+            }
+            
+            html_message = render_to_string('core/emails/newsletter_update.html', context)
             
             # Send emails in batches to avoid timeout
             BATCH_SIZE = 50
@@ -207,20 +264,17 @@ def send_newsletter(request):
                 
                 try:
                     send_mail(
-                        subject=subject,
+                        subject=f"{subject} - REY PREMIUM VOGUE",
                         message='',
-                        html_message=html_message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=recipient_list,
-                        fail_silently=True
+                        html_message=html_message
                     )
                     successful_sends += len(recipient_list)
                 except Exception as e:
                     failed_sends += len(recipient_list)
-                    # Log the error here if you have logging set up
                     print(f"Failed to send newsletter batch: {str(e)}")
             
-            # Prepare response message
             message = f"Newsletter sent to {successful_sends} subscribers successfully."
             if failed_sends > 0:
                 message += f" Failed to send to {failed_sends} subscribers."

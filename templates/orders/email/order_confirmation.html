@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <title>Order Confirmation - REY PREMIUM VOGUE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,79 +16,96 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        .content {
-            background-color: #f9fafb;
-            padding: 30px;
-            border-radius: 8px;
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .order-details {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
         .order-items {
-            margin: 20px 0;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
-        .item {
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
+        .order-items th, .order-items td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
         }
         .total {
-            margin-top: 20px;
+            text-align: right;
             font-weight: bold;
         }
         .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #6b7280;
             text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="logo">
-        <h1>REY PREMIUM VOGUE</h1>
+        <img src="{{ site_url }}{% static 'images/logo.jpg' %}" alt="REY PREMIUM VOGUE">
     </div>
     
-    <div class="content">
-        <h2>Order Confirmation</h2>
-        
-        <p>Dear {{ shipping.first_name }},</p>
-        
-        <p>Thank you for your order! We've received your order and will process it shortly.</p>
-        
-        <h3>Order Details:</h3>
-        <div class="order-items">
-            {% for item in cart.items.all %}
-            <div class="item">
-                <p>
-                    <strong>{{ item.product.name }}</strong><br>
-                    Size: {{ item.size }} | Color: {{ item.color }}<br>
-                    Quantity: {{ item.quantity }} | Price: ₦{{ item.total_price }}
+    <div class="header">
+        <h1>Thank You for Your Order!</h1>
+        <p>Order #{{ order.id }}</p>
+    </div>
+
+    <div class="order-details">
+        <h2>Order Details</h2>
+        <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+        <p><strong>Shipping Address:</strong><br>
+            {{ order.shipping_address.full_name }}<br>
+            {{ order.shipping_address.street_address }}<br>
+            {{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}<br>
+            {{ order.shipping_address.country }}
                 </p>
             </div>
+
+    <table class="order-items">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>
+                    {{ item.product.name }}<br>
+                    <small>Size: {{ item.size }}{% if item.color %} | Color: {{ item.color }}{% endif %}</small>
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>₦{{ item.price }}</td>
+            </tr>
             {% endfor %}
-        </div>
+        </tbody>
+    </table>
         
         <div class="total">
-            <p>
-                Subtotal: ₦{{ cart.subtotal }}<br>
-                Shipping: ₦{{ cart.shipping_cost }}<br>
-                Total: ₦{{ cart.total }}
-            </p>
-        </div>
-        
-        <h3>Shipping Address:</h3>
-        <p>
-            {{ shipping.first_name }} {{ shipping.last_name }}<br>
-            {{ shipping.address }}<br>
-            {{ shipping.city }}, {{ shipping.state }} {{ shipping.postal_code }}<br>
-            {{ shipping.country }}
-        </p>
-        
-        <p>We'll send you another email when your order ships.</p>
+        <p>Subtotal: ₦{{ order.subtotal }}</p>
+        <p>Shipping: ₦{{ order.shipping_cost }}</p>
+        <p>Total: ₦{{ order.total_amount }}</p>
     </div>
     
     <div class="footer">
-        <p>
-            If you have any questions, please contact us at {{ site_url }}<br>
-            Thank you for shopping with REY PREMIUM VOGUE!
-        </p>
+        <p>If you have any questions about your order, please contact us at support@reyvogue.com</p>
+        <p>© {% now "Y" %} REY PREMIUM VOGUE. All rights reserved.</p>
     </div>
 </body>
 </html> 
