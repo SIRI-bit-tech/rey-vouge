@@ -14,9 +14,6 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
 import bugsnag
 from bugsnag.django.middleware import BugsnagMiddleware
 
@@ -128,7 +125,7 @@ DATABASES = {
     }
 }
 
-# DATABASES['default'] = dj_database_url.parse("postgresql://rey_postgressql_reyvouge_user:h3jlSVlJHRKgVEqjSHYnrWMI9nWfdZAf@dpg-cubmi52j1k6c73ed4qf0-a.oregon-postgres.render.com/rey_postgressql_reyvouge")
+
 database_url = os.environ.get("DATABASE_URL")
 DATABASES['default'] = dj_database_url.parse(database_url)
 
