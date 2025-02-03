@@ -4,9 +4,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}REY PREMIUM VOGUE{% endblock %}</title>
-
-
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}REY PREMIUM VOGUE - Premium Fashion Destination{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}REY PREMIUM VOGUE offers premium fashion clothing and accessories. Shop the latest trends in Nigerian fashion.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}fashion, premium clothing, Nigerian fashion, designer wear, REY PREMIUM VOGUE{% endblock %}">
+    <meta name="author" content="REY PREMIUM VOGUE">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ block.super }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block.super }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.jpg' %}{% endblock %}">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ block.super }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ block.super }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ block.super }}{% endblock %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="{% static 'images/logo.jpg' %}" as="image">
+    <link rel="preload" href="{% static 'css/styles.css' %}" as="style">
+    
+    <!-- Schema.org Markup -->
+    {% block schema_markup %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "REY PREMIUM VOGUE",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.jpg' %}",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+234-XXX-XXX-XXXX",
+            "contactType": "customer service"
+        },
+        "sameAs": [
+            "https://facebook.com/reypremiumvogue",
+            "https://instagram.com/reypremiumvogue"
+        ]
+    }
+    </script>
+    {% endblock %}
+    
     <link rel="icon" type="image/png" href="{% static 'images/favicon-96x96.png' %}" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}" />
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
@@ -42,7 +97,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    {% block extra_css %}{% endblock %}
     <style>
         [x-cloak] { display: none !important; }
     </style>
@@ -84,9 +138,12 @@
                     <a href="{% url 'accounts:wishlist' %}" class="block py-2 hover:text-accent transition duration-300">
                         <i class="far fa-heart w-6"></i> My Wishlist
                     </a>
-                    <a href="{% url 'accounts:logout' %}" class="block py-2 hover:text-accent transition duration-300">
-                        <i class="fas fa-sign-out-alt w-6"></i> Logout
-                        </a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left py-2 hover:text-accent transition duration-300">
+                            <i class="fas fa-sign-out-alt w-6"></i> Logout
+                        </button>
+                    </form>
                     {% endif %}
                 </nav>
             </div>
@@ -173,11 +230,14 @@
                                 <i class="far fa-heart mr-2"></i>My Wishlist
                             </a>
                             <div class="border-t my-2"></div>
-                            <a href="{% url 'accounts:logout' %}" 
-                               @click="open = false"
-                               class="block px-4 py-2 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </a>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        @click="open = false"
+                                        class="w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </form>
                         </div>
                         {% else %}
                         <a href="{% url 'accounts:login' %}" class="text-gray-500 hover:text-accent">
@@ -285,7 +345,6 @@
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {% block extra_js %}{% endblock %}
 
     <!-- Add notification container at the end of body -->
     <div id="notification" class="notification" style="display: none;">
@@ -418,5 +477,44 @@
             }, 3000);
         }
     </script>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Error Tracking -->
+    {% if not debug %}
+    <script
+        src="//d2wy8f7a9ursnm.cloudfront.net/v7/bugsnag.min.js"
+        crossorigin="anonymous"
+    ></script>
+    <script>
+        Bugsnag.start({
+            apiKey: '{{ BUGSNAG_API_KEY }}',
+            releaseStage: '{{ ENVIRONMENT }}',
+            enabledReleaseStages: ['production', 'staging'],
+            metadata: {
+                account: {
+                    id: '{{ request.user.id|default:"" }}',
+                    email: '{{ request.user.email|default:"" }}',
+                }
+            }
+        });
+
+        window.addEventListener('error', function(e) {
+            Bugsnag.notify(e.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            Bugsnag.notify(e.reason);
+        });
+    </script>
+
+    <!-- Performance Monitoring -->
+    <script type="module">
+        import BugsnagPerformance from '//d2wy8f7a9ursnm.cloudfront.net/v1/bugsnag-performance.min.js'
+        BugsnagPerformance.start({ apiKey: '{{ BUGSNAG_API_KEY }}' })
+    </script>
+    {% endif %}
 </body>
 </html> 

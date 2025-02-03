@@ -116,7 +116,7 @@ def order_history(request):
 
 @login_required
 def wishlist(request):
-    wishlist = request.user.wishlist
+    wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     context = {
         'wishlist': wishlist,
     }

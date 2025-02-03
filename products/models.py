@@ -3,6 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
+import uuid
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -74,7 +75,8 @@ class Product(models.Model):
     
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    sku = models.CharField(max_length=100, unique=True, blank=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -82,20 +84,48 @@ class Product(models.Model):
     available_sizes = models.CharField(max_length=200, help_text='Enter sizes separated by commas. For clothes: S,M,L. For shoes: 38,39,40. For perfumes: 50ml,100ml')
     colors = models.CharField(max_length=200, help_text='Enter colors separated by commas (e.g., red,blue,black)', blank=True)
     is_featured = models.BooleanField(default=False)
-    is_new_arrival = models.BooleanField(default=True)
+    is_new_arrival = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # SEO fields
+    meta_title = models.CharField(max_length=200, blank=True)
+    meta_description = models.TextField(blank=True)
+    meta_keywords = models.CharField(max_length=200, blank=True)
+    
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active', 'is_featured']),
+            models.Index(fields=['category', 'is_active']),
+        ]
     
     def __str__(self):
         return self.name
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            # Generate a unique slug
+            base_slug = slugify(self.name)
+            unique_id = str(uuid.uuid4())[:8]
+            self.slug = f"{base_slug}-{unique_id}"
+        
+        if not self.sku:
+            # Generate a unique SKU
+            self.sku = f"REY-{str(uuid.uuid4())[:8].upper()}"
+        
+        # Generate SEO metadata if not provided
+        if not self.meta_title:
+            self.meta_title = f"{self.name} - REY PREMIUM VOGUE"
+        
+        if not self.meta_description:
+            self.meta_description = f"{self.description[:157]}..." if len(self.description) > 160 else self.description
+        
+        if not self.meta_keywords:
+            keywords = [self.name, self.category.name, 'fashion', 'premium clothing']
+            self.meta_keywords = ', '.join(keywords)
         
         # Clean and format sizes based on category
         if self.available_sizes:
@@ -134,6 +164,17 @@ class Product(models.Model):
         if self.sale_price:
             discount = ((self.price - self.sale_price) / self.price) * 100
             return round(discount)
+        return 0
+    
+    @property
+    def is_on_sale(self):
+        return bool(self.sale_price)
+    
+    @property
+    def average_rating(self):
+        reviews = self.reviews.all()
+        if reviews:
+            return sum(review.rating for review in reviews) / len(reviews)
         return 0
     
     @property

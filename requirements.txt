@@ -66,3 +66,9 @@ urllib3==2.3.0
 virtualenv==20.29.1
 whitenoise==6.6.0
 zipp==3.21.0
+django-redis==5.4.0
+redis==5.0.1
+bugsnag==4.6.1
+Pillow==10.2.0
+beautifulsoup4==4.12.3
+htmlmin==0.1.12

@@ -15,8 +15,10 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 import urllib.parse
 import json
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.contrib.sites.shortcuts import get_current_site
+import base64
+import os
 
 @login_required
 def cart_detail(request):
@@ -207,6 +209,15 @@ def checkout_shipping(request):
     
     return redirect('orders:checkout')
 
+def get_logo_base64():
+    try:
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'logo.jpg')
+        with open(logo_path, 'rb') as img_file:
+            return 'data:image/jpeg;base64,' + base64.b64encode(img_file.read()).decode()
+    except Exception as e:
+        print(f"Error loading logo: {str(e)}")
+        return ''
+
 @login_required
 @require_POST
 def place_order(request):
@@ -312,45 +323,57 @@ Order ID: #{order.id}"""
             }, status=500)
 
         try:
-            # Send email to customer
+            # Get the site URL
             current_site = get_current_site(request)
             site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
             
+            # Prepare email context
             context = {
+                'user': request.user,
+                'cart': cart,
+                'shipping': shipping,
                 'order': order,
                 'site_url': site_url,
+                'logo_data': get_logo_base64(),  # Add base64 encoded logo
             }
             
             html_message = render_to_string('orders/email/order_confirmation.html', context)
             plain_message = render_to_string('orders/email/order_confirmation_plain.txt', context)
             
-            send_mail(
-                subject=f'Order Confirmation #{order.id} - REY PREMIUM VOGUE',
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[order.user.email],
-                html_message=html_message
-            )
-
+            try:
+                send_mail(
+                    subject=f'Order Confirmation #{order.id} - REY PREMIUM VOGUE',
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"Email sending failed: {str(e)}")
+                # Log the error but don't stop the order process
+                
             # Send email to admin
             admin_email = getattr(settings, 'ADMIN_EMAIL', '')
             if admin_email:
                 admin_subject = f"New Order #{order.id} from {shipping.get('first_name', '')} {shipping.get('last_name', '')}"
-                admin_message = render_to_string('orders/email/admin_notification.html', {
-                    'user': request.user,
-                    'cart': cart,
-                    'shipping': shipping,
-                    'site_url': site_url,
-                    'order': order,
+                admin_context = context.copy()
+                admin_context.update({
+                    'is_admin': True,
                 })
-                send_mail(
-                    admin_subject,
-                    '',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [admin_email],
-                    html_message=admin_message,
-                    fail_silently=True,
-                )
+                admin_message = render_to_string('orders/email/admin_notification.html', admin_context)
+                try:
+                    send_mail(
+                        admin_subject,
+                        '',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [admin_email],
+                        html_message=admin_message,
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"Admin email sending failed: {str(e)}")
+                    # Log the error but don't stop the order process
         except Exception as email_error:
             # Log the email error but don't fail the order
             print(f"Email sending failed: {str(email_error)}")

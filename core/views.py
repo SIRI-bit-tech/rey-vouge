@@ -22,6 +22,12 @@ from .serializers import (
     StoreLocationSerializer
 )
 from django.contrib.sites.shortcuts import get_current_site
+import logging
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
+import json
+
+logger = logging.getLogger('django')
 
 def home(request):
     categories = Category.objects.all()
@@ -396,3 +402,27 @@ class StoreLocationListAPI(generics.ListAPIView):
     queryset = StoreLocation.objects.filter(is_active=True)
     serializer_class = StoreLocationSerializer
     permission_classes = [permissions.AllowAny]
+
+@csrf_protect
+@require_POST
+def log_javascript_error(request):
+    try:
+        error_data = json.loads(request.body)
+        logger.error(
+            'JavaScript Error: %s\nFile: %s\nLine: %s\nColumn: %s\nStack: %s',
+            error_data.get('message'),
+            error_data.get('filename'),
+            error_data.get('lineno'),
+            error_data.get('colno'),
+            error_data.get('error')
+        )
+        return JsonResponse({'status': 'logged'})
+    except Exception as e:
+        logger.error('Error logging JavaScript error: %s', str(e))
+        return JsonResponse({'status': 'error'}, status=500)
+
+def custom_404(request, exception):
+    return render(request, 'core/errors/404.html', status=404)
+
+def custom_500(request):
+    return render(request, 'core/errors/500.html', status=500)

@@ -14,6 +14,11 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+import bugsnag
+from bugsnag.django.middleware import BugsnagMiddleware
 
 
 load_dotenv()
@@ -62,6 +67,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'bugsnag.django.middleware.BugsnagMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -72,7 +78,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'core.middleware.ImageOptimizationMiddleware',
+    'core.middleware.PageSpeedMiddleware',
 ]
+
+if not DEBUG:
+    # Add caching middleware only in production
+    MIDDLEWARE = [
+        'django.middleware.cache.UpdateCacheMiddleware',
+        *MIDDLEWARE,
+        'django.middleware.cache.FetchFromCacheMiddleware',
+    ]
 
 ROOT_URLCONF = 'rey_vogue.urls'
 
@@ -80,13 +96,20 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.error_tracking_settings',
+            ],
+            'loaders': [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
             ],
         },
     },
@@ -104,10 +127,13 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES['default'] = dj_database_url.parse("postgresql://rey_postgressql_reyvouge_user:h3jlSVlJHRKgVEqjSHYnrWMI9nWfdZAf@dpg-cubmi52j1k6c73ed4qf0-a.oregon-postgres.render.com/rey_postgressql_reyvouge")
 database_url = os.environ.get("DATABASE_URL")
 DATABASES['default'] = dj_database_url.parse(database_url)
 
-
+# Database connection pooling
+DATABASES['default']['CONN_MAX_AGE'] = 60 * 5  # 5 minutes
 
 
 # Password validation
@@ -150,6 +176,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Static files compression and caching
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -200,3 +229,111 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Changed to none for now
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+# Performance Optimization Settings
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+            'OPTIONS': {
+                'parser_class': 'redis.connection.PythonParser',
+                'pool_class': 'redis.BlockingConnectionPool',
+                'retry_on_timeout': True,
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
+            }
+        }
+    }
+
+# Cache timeout settings
+CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
+CACHE_MIDDLEWARE_KEY_PREFIX = 'rey_vogue'
+
+# Cache middleware settings
+CACHE_MIDDLEWARE_ALIAS = 'default'
+
+# Initialize Bugsnag
+bugsnag.configure(
+    api_key=os.getenv('BUGSNAG_API_KEY'),
+    project_root=BASE_DIR,
+    release_stage=os.getenv('ENVIRONMENT', 'production'),
+    notify_release_stages=['production', 'staging'],
+)
+
+# Update the logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'rey_vogue': {  # Add application-specific logger
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+# Add these settings for GlitchTip
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
+
+# Add image optimization settings
+IMAGE_UPLOAD_MAX_SIZE = (800, 800)  # Maximum image dimensions
+IMAGE_QUALITY = 85  # JPEG quality
+IMAGE_FORMATS = ['JPEG', 'PNG']  # Allowed image formats
+
+# Bugsnag settings
+BUGSNAG_API_KEY = os.getenv('BUGSNAG_API_KEY')

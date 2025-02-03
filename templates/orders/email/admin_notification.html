@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <title>New Order Notification - REY PREMIUM VOGUE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,81 +12,82 @@
             margin: 0 auto;
             padding: 20px;
         }
-        .logo {
+        .header {
             text-align: center;
             margin-bottom: 30px;
+            color: #1a1a1a;
         }
-        .content {
-            background-color: #f9fafb;
-            padding: 30px;
-            border-radius: 8px;
+        .order-details {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
         .order-items {
-            margin: 20px 0;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
-        .item {
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
+        .order-items th, .order-items td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
         }
         .total {
-            margin-top: 20px;
+            text-align: right;
             font-weight: bold;
-        }
-        .customer-info {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="logo">
-        <h1>REY PREMIUM VOGUE - New Order</h1>
+    <div class="header">
+        <h1>New Order Received</h1>
+        <p>Order #{{ order.id }}</p>
     </div>
-    
-    <div class="content">
-        <h2>New Order Received</h2>
-        
-        <div class="customer-info">
-            <h3>Customer Information:</h3>
-            <p>
-                <strong>Name:</strong> {{ shipping.first_name }} {{ shipping.last_name }}<br>
-                <strong>Email:</strong> {{ shipping.email }}<br>
-                <strong>Phone:</strong> {{ shipping.phone_number }}
-            </p>
-            
-            <h3>Shipping Address:</h3>
-            <p>
-                {{ shipping.address }}<br>
-                {{ shipping.city }}, {{ shipping.state }} {{ shipping.postal_code }}<br>
-                {{ shipping.country }}
-            </p>
-        </div>
-        
-        <h3>Order Details:</h3>
-        <div class="order-items">
-            {% for item in cart.items.all %}
-            <div class="item">
-                <p>
-                    <strong>{{ item.product.name }}</strong><br>
-                    Size: {{ item.size }} | Color: {{ item.color }}<br>
-                    Quantity: {{ item.quantity }} | Price: ₦{{ item.total_price }}<br>
-                    Product Link: <a href="{{ site_url }}{% url 'products:product_detail' item.product.slug %}">View Product</a>
-                </p>
-            </div>
+
+    <div class="order-details">
+        <h2>Customer Details</h2>
+        <p><strong>Name:</strong> {{ shipping.first_name }} {{ shipping.last_name }}</p>
+        <p><strong>Email:</strong> {{ shipping.email }}</p>
+        <p><strong>Phone:</strong> {{ shipping.phone_number }}</p>
+        <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+        <p><strong>Shipping Address:</strong><br>
+            {{ shipping.address }}<br>
+            {{ shipping.city }}, {{ shipping.state }} {{ shipping.postal_code }}<br>
+            {{ shipping.country }}
+        </p>
+    </div>
+
+    <table class="order-items">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>
+                    {{ item.product.name }}<br>
+                    <small>Size: {{ item.size }}{% if item.color %} | Color: {{ item.color }}{% endif %}</small>
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>₦{{ item.price }}</td>
+            </tr>
             {% endfor %}
-        </div>
+        </tbody>
+    </table>
         
-        <div class="total">
-            <p>
-                Subtotal: ₦{{ cart.subtotal }}<br>
-                Shipping: ₦{{ cart.shipping_cost }}<br>
-                Total: ₦{{ cart.total }}
-            </p>
-        </div>
-        
-        <p>Please process this order as soon as possible.</p>
+    <div class="total">
+        <p>Subtotal: ₦{{ order.subtotal }}</p>
+        <p>Shipping: ₦{{ order.shipping_cost }}</p>
+        <p>Total: ₦{{ order.total_amount }}</p>
     </div>
+
+    <p style="margin-top: 30px;">
+        <a href="{{ site_url }}/admin/orders/order/{{ order.id }}/change/" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Order in Admin</a>
+    </p>
 </body>
 </html> 
