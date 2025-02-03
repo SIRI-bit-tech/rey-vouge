@@ -85,7 +85,7 @@ if not DEBUG:
         'django.middleware.cache.UpdateCacheMiddleware',
         *MIDDLEWARE,
         'django.middleware.cache.FetchFromCacheMiddleware',
-    ]
+]
 
 ROOT_URLCONF = 'rey_vogue.urls'
 
@@ -118,16 +118,20 @@ WSGI_APPLICATION = 'rey_vogue.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default' : {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
-
-
-database_url = os.environ.get("DATABASE_URL")
-DATABASES['default'] = dj_database_url.parse(database_url)
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600
+        )
+    }
 
 # Database connection pooling
 DATABASES['default']['CONN_MAX_AGE'] = 60 * 5  # 5 minutes

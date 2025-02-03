@@ -16,4 +16,5 @@ urlpatterns = [
     path('wishlist/remove/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
     path('store-locations/', views.store_locations, name='store_locations'),
     path('promotions/', views.promotions, name='promotions'),
+    path('log-javascript-error/', views.log_javascript_error, name='log_javascript_error'),
 ] 
