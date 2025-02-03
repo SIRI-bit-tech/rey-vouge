@@ -285,31 +285,43 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': False,
         },
         'rey_vogue': {  # Add application-specific logger
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
     },
 }
+
+if DEBUG:
+    # Add file logging only in debug mode
+    log_dir = os.path.join(BASE_DIR, 'logs')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    LOGGING['handlers']['file'] = {
+        'level': 'ERROR',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(log_dir, 'django.log'),
+        'formatter': 'verbose',
+    }
+    
+    # Add file handler to loggers
+    LOGGING['loggers']['django']['handlers'].append('file')
+    LOGGING['loggers']['django.request']['handlers'].append('file')
+    LOGGING['loggers']['rey_vogue']['handlers'].append('file')
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
