@@ -33,8 +33,15 @@ class Product(models.Model):
         ('M', 'Medium'),
         ('L', 'Large'),
         ('XL', 'Extra Large'),
-        ('XXL', 'Double Extra Large'),
-        ('XXXL', 'Triple Extra Large'),
+        ('2XL', 'Double Extra Large'),
+        ('3XL', 'Triple Extra Large'),
+        ('4XL', '4 Extra Large'),
+        ('5XL', '5 Extra Large'),
+        ('6XL', '6 Extra Large'),
+        ('7XL', '7 Extra Large'),
+        ('8XL', '8 Extra Large'),
+        ('9XL', '9 Extra Large'),
+        ('10XL', '10 Extra Large'),
     ]
     
     SHOE_SIZES = [
@@ -50,6 +57,12 @@ class Product(models.Model):
         ('43', '43'),
         ('44', '44'),
         ('45', '45'),
+        ('46', '46'),
+        ('47', '47'),
+        ('48', '48'),
+        ('49', '49'),
+        ('50', '50'),
+        
     ]
     
     PERFUME_SIZES = [
@@ -59,6 +72,9 @@ class Product(models.Model):
         ('75ml', '75ml'),
         ('100ml', '100ml'),
         ('200ml', '200ml'),
+        ('300ml', '300ml'),
+        ('500ml', '500ml'),
+        ('1000ml', '1000ml'),
     ]
     
     COLORS = [
@@ -72,8 +88,18 @@ class Product(models.Model):
         ('gray', 'Gray'),
         ('navy', 'Navy'),
         ('beige', 'Beige'),
-        ('navy blue', 'Navy Blue'),
+        ('navy-blue', 'Navy Blue'),
         ('champagne', 'Champagne'),
+        ('pink', 'Pink'),
+        ('orange', 'Orange'),
+        ('purple', 'Purple'),
+        ('gold', 'Gold'),
+        ('silver', 'Silver'),
+        ('turquoise', 'Turquoise'),
+        ('pearl', 'Pearl'),
+        ('ivory', 'Ivory'),
+        ('lilac', 'Lilac'),
+        
     ]
     
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)

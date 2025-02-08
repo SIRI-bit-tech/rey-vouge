@@ -1,5 +1,13 @@
 User-agent: *
 Allow: /
+Allow: /static/
+Allow: /media/
+Allow: /products/
+Allow: /about/
+Allow: /contact/
+Allow: /store-locations/
+Allow: /promotions/
+
 Disallow: /admin/
 Disallow: /accounts/
 Disallow: /cart/

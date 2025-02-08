@@ -25,6 +25,6 @@ Subtotal: ₦{{ order.subtotal }}
 Shipping: ₦{{ order.shipping_cost }}
 Total: ₦{{ order.total_amount }}
 
-If you have any questions about your order, please contact us at support@reyvogue.com
+If you have any questions about your order, please contact us at reyspremium@gmail.com
 
 © {% now "Y" %} REY PREMIUM VOGUE. All rights reserved. 

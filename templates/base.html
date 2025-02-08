@@ -261,6 +261,24 @@
         </div>
     </header>
 
+    <!-- Breadcrumbs -->
+    {% block breadcrumbs %}
+    <div class="bg-gray-50 py-3">
+        <div class="container mx-auto px-4">
+            <nav class="flex text-sm">
+                <ol class="flex items-center space-x-2">
+                    <li>
+                        <a href="{% url 'core:home' %}" class="text-gray-500 hover:text-accent">
+                            <i class="fas fa-home"></i>
+                        </a>
+                    </li>
+                    {% block breadcrumb_items %}{% endblock %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+    {% endblock %}
+
     <!-- Main Content -->
     <main class="min-h-screen">
         {% if messages %}
