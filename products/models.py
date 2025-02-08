@@ -26,38 +26,6 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('products:product_list_by_category', args=[self.slug])
 
-class ClothingSize(models.Model):
-    name = models.CharField(max_length=10)  # e.g., 'XS', 'S', 'M', 'L', 'XL', '2XL'
-    display_name = models.CharField(max_length=50)  # e.g., 'Extra Small', 'Small', etc.
-    order = models.PositiveIntegerField(default=0)  # For controlling display order
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['order', 'name']
-        verbose_name = 'Clothing Size'
-        verbose_name_plural = 'Clothing Sizes'
-
-    def __str__(self):
-        return self.display_name
-
-class ClothingColor(models.Model):
-    name = models.CharField(max_length=50)  # e.g., 'navy-blue'
-    display_name = models.CharField(max_length=50)  # e.g., 'Navy Blue'
-    color_code = models.CharField(max_length=7)  # Hex color code e.g., '#000080'
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['display_name']
-        verbose_name = 'Clothing Color'
-        verbose_name_plural = 'Clothing Colors'
-
-    def __str__(self):
-        return self.display_name
-
 class Product(models.Model):
     CLOTHING_SIZES = [
         ('XS', 'Extra Small'),
@@ -66,6 +34,7 @@ class Product(models.Model):
         ('L', 'Large'),
         ('XL', 'Extra Large'),
         ('XXL', 'Double Extra Large'),
+        ('XXXL', 'Triple Extra Large'),
     ]
     
     SHOE_SIZES = [
@@ -103,6 +72,8 @@ class Product(models.Model):
         ('gray', 'Gray'),
         ('navy', 'Navy'),
         ('beige', 'Beige'),
+        ('navy blue', 'Navy Blue'),
+        ('champagne', 'Champagne'),
     ]
     
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
@@ -113,15 +84,8 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     stock = models.PositiveIntegerField(default=0)
-    
-    # For clothing products
-    available_clothing_sizes = models.ManyToManyField(ClothingSize, blank=True, related_name='products')
-    available_clothing_colors = models.ManyToManyField(ClothingColor, blank=True, related_name='products')
-    
-    # For non-clothing products (shoes, perfumes)
-    available_sizes = models.CharField(max_length=200, blank=True, help_text='For shoes: 38,39,40. For perfumes: 50ml,100ml')
-    colors = models.CharField(max_length=200, blank=True, help_text='Enter colors separated by commas (e.g., red,blue,black)')
-    
+    available_sizes = models.CharField(max_length=200, help_text='Enter sizes separated by commas. For clothes: S,M,L. For shoes: 38,39,40. For perfumes: 50ml,100ml')
+    colors = models.CharField(max_length=200, help_text='Enter colors separated by commas (e.g., red,blue,black)', blank=True)
     is_featured = models.BooleanField(default=False)
     is_new_arrival = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -177,6 +141,9 @@ class Product(models.Model):
             elif 'shoe' in category_name:
                 valid_sizes = dict(self.SHOE_SIZES)
                 self.available_sizes = ','.join(s for s in sizes if s in valid_sizes)
+            else:  # Default to clothing sizes
+                valid_sizes = dict(self.CLOTHING_SIZES)
+                self.available_sizes = ','.join(s.upper() for s in sizes if s.upper() in valid_sizes)
         
         # Clean and format colors
         if self.colors:
@@ -215,16 +182,10 @@ class Product(models.Model):
     
     @property
     def size_list(self):
-        category_name = self.category.name.lower()
-        if 'cloth' in category_name or 'dress' in category_name or 'shirt' in category_name:
-            return [size.name for size in self.available_clothing_sizes.filter(is_active=True)]
         return [size.strip() for size in self.available_sizes.split(',')] if self.available_sizes else []
     
     @property
     def color_list(self):
-        category_name = self.category.name.lower()
-        if 'cloth' in category_name or 'dress' in category_name or 'shirt' in category_name:
-            return [color.name for color in self.available_clothing_colors.filter(is_active=True)]
         return [color.strip() for color in self.colors.split(',')] if self.colors else []
 
 class ProductImage(models.Model):
