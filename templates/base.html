@@ -261,23 +261,7 @@
         </div>
     </header>
 
-    <!-- Breadcrumbs -->
-    {% if show_breadcrumbs %}
-    <nav aria-label="Breadcrumb" class="container mx-auto px-4 py-2">
-        <ol class="flex items-center space-x-2 text-sm text-gray-600">
-            {% for crumb in breadcrumbs %}
-                {% if not forloop.last %}
-                    <li>
-                        <a href="{{ crumb.url }}" class="hover:text-primary-600">{{ crumb.name }}</a>
-                        <span class="ml-2">/</span>
-                    </li>
-                {% else %}
-                    <li class="text-gray-900 font-medium" aria-current="page">{{ crumb.name }}</li>
-                {% endif %}
-            {% endfor %}
-        </ol>
-    </nav>
-    {% endif %}
+    {% include 'includes/breadcrumbs.html' %}
 
     <!-- Main Content -->
     <main class="min-h-screen">
