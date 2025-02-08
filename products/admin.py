@@ -1,13 +1,29 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Review
+from .models import Category, Product, ProductImage, Review, ClothingSize, ClothingColor
 from django import forms
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'description')
+    list_display = ('name', 'slug')
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ('name', 'description')
     ordering = ('name',)
+
+@admin.register(ClothingSize)
+class ClothingSizeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_name', 'order', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'display_name')
+    ordering = ('order', 'name')
+    list_editable = ('order', 'is_active')
+
+@admin.register(ClothingColor)
+class ClothingColorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_name', 'color_code', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'display_name')
+    ordering = ('display_name',)
+    list_editable = ('is_active',)
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -21,63 +37,40 @@ class ReviewInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'sale_price', 'stock', 'is_featured', 'is_active')
-    list_filter = ('category', 'is_featured', 'is_active', 'created_at')
-    search_fields = ('name', 'description')
+    list_display = ('name', 'category', 'price', 'stock', 'is_active', 'is_featured', 'created_at')
+    list_filter = ('category', 'is_active', 'is_featured', 'is_new_arrival')
+    search_fields = ('name', 'description', 'sku')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ProductImageInline, ReviewInline]
-    list_editable = ('price', 'sale_price', 'stock', 'is_featured', 'is_active')
+    filter_horizontal = ('available_clothing_sizes', 'available_clothing_colors')
     
-    def get_fieldsets(self, request, obj=None):
-        # Get the base fieldsets
-        fieldsets = [
-        (None, {
-            'fields': ('category', 'name', 'slug', 'description')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('category', 'name', 'slug', 'sku', 'description', 'price', 'sale_price', 'stock')
         }),
-        ('Pricing & Stock', {
-            'fields': ('price', 'sale_price', 'stock')
+        ('Sizes and Colors', {
+            'fields': ('available_clothing_sizes', 'available_clothing_colors', 'available_sizes', 'colors'),
+            'description': 'For clothing items, use the multi-select fields. For other items, use the text fields.'
         }),
-        ('Display Settings', {
-            'fields': ('is_featured', 'is_new_arrival', 'is_active')
+        ('Status', {
+            'fields': ('is_active', 'is_featured', 'is_new_arrival')
         }),
-        ]
-        
-        # Add size and color fields based on category
-        if obj and 'perfume' in obj.category.name.lower():
-            # For perfumes, only show sizes (no colors)
-            fieldsets.insert(2, ('Options', {
-                'fields': ('available_sizes',),
-                'description': 'Enter perfume sizes (e.g., 50ml,100ml)'
-            }))
-        elif obj and 'shoe' in obj.category.name.lower():
-            # For shoes, show both sizes and colors
-            fieldsets.insert(2, ('Options', {
-                'fields': ('available_sizes', 'colors'),
-                'description': 'Enter shoe sizes (e.g., 38,39,40) and colors. Type "none" if no colors are available.'
-            }))
-        else:
-            # For clothing, show both sizes and colors
-            fieldsets.insert(2, ('Options', {
-                'fields': ('available_sizes', 'colors'),
-                'description': 'Enter clothing sizes (e.g., S,M,L) and colors. Type "none" if no colors are available.'
-            }))
-        
-        return fieldsets
+        ('SEO', {
+            'fields': ('meta_title', 'meta_description', 'meta_keywords'),
+            'classes': ('collapse',)
+        })
+    )
     
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        if obj:
-            # Update help text based on category
-            if 'perfume' in obj.category.name.lower():
-                form.base_fields['available_sizes'].help_text = 'Enter sizes separated by commas (e.g., 50ml,100ml)'
-                if 'colors' in form.base_fields:
-                    form.base_fields['colors'].widget = forms.HiddenInput()
-            elif 'shoe' in obj.category.name.lower():
-                form.base_fields['available_sizes'].help_text = 'Enter sizes separated by commas (e.g., 38,39,40)'
-                form.base_fields['colors'].help_text = 'Enter colors separated by commas (e.g., red,blue,black) or type "none" if no colors are available'
+        if obj and obj.category:
+            category_name = obj.category.name.lower()
+            if 'cloth' in category_name or 'dress' in category_name or 'shirt' in category_name:
+                form.base_fields['available_sizes'].widget.attrs['disabled'] = True
+                form.base_fields['colors'].widget.attrs['disabled'] = True
             else:
-                form.base_fields['available_sizes'].help_text = 'Enter sizes separated by commas (e.g., S,M,L)'
-                form.base_fields['colors'].help_text = 'Enter colors separated by commas (e.g., red,blue,black) or type "none" if no colors are available'
+                form.base_fields['available_clothing_sizes'].widget.attrs['disabled'] = True
+                form.base_fields['available_clothing_colors'].widget.attrs['disabled'] = True
         return form
 
 @admin.register(Review)

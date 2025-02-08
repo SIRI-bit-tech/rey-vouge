@@ -347,12 +347,12 @@ Order ID: #{order.id}"""
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[order.user.email],
                     html_message=html_message,
-                    fail_silently=False,
+                    fail_silently=False
                 )
             except Exception as e:
                 print(f"Email sending failed: {str(e)}")
                 # Log the error but don't stop the order process
-                
+
             # Send email to admin
             admin_email = getattr(settings, 'ADMIN_EMAIL', '')
             if admin_email:
@@ -369,7 +369,7 @@ Order ID: #{order.id}"""
                         settings.DEFAULT_FROM_EMAIL,
                         [admin_email],
                         html_message=admin_message,
-                        fail_silently=False,
+                        fail_silently=False
                     )
                 except Exception as e:
                     print(f"Admin email sending failed: {str(e)}")
