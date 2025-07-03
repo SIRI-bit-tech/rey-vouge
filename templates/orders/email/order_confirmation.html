@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Order Confirmation - REY PREMIUM VOGUE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #eee;
+        }
+        .order-details {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th,
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        .total-section {
+            margin-top: 20px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Confirmation</h1>
+            <p>Thank you for shopping with REY PREMIUM VOGUE!</p>
+        </div>
+
+        <div class="order-details">
+            <h2>Order Details</h2>
+            <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+            <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+            <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+        </div>
+
+        <div class="shipping-details">
+            <h2>Shipping Details</h2>
+            <p><strong>Name:</strong> {{ order.shipping_address.full_name }}</p>
+            <p><strong>Address:</strong> {{ order.shipping_address.address }}</p>
+            <p><strong>City:</strong> {{ order.shipping_address.city }}</p>
+            <p><strong>State:</strong> {{ order.shipping_address.state }}</p>
+            <p><strong>Postal Code:</strong> {{ order.shipping_address.postal_code }}</p>
+            <p><strong>Phone:</strong> {{ order.shipping_address.phone }}</p>
+        </div>
+
+        <h2>Order Items</h2>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Color</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.size }}</td>
+                    <td>{{ item.color|default:'-' }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₦{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <p><strong>Subtotal:</strong> ₦{{ order.subtotal }}</p>
+            <p><strong>Shipping:</strong> ₦{{ order.shipping_cost }}</p>
+            <p><strong>Total:</strong> ₦{{ order.total_amount }}</p>
+        </div>
+
+        <div class="footer">
+            <p>If you have any questions about your order, please contact our customer service:</p>
+            <p>Email: support@reyvogue.com | Phone: +234-XXX-XXX-XXXX</p>
+            <p>Thank you for choosing REY PREMIUM VOGUE!</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About Us - REY PREMIUM VOGUE{% endblock %}
+
+{% block meta_description %}Discover REY PREMIUM VOGUE - Nigeria's premier luxury fashion destination in Delta State. Experience our curated collection of designer clothing, accessories, and fragrances with personalized styling services.{% endblock %}
+
+{% block meta_keywords %}luxury fashion Nigeria, designer clothing Delta State, premium fashion store, luxury boutique, designer brands, luxury shopping, REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+    <!-- About Header -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-serif text-center">About REY PREMIUM VOGUE</h1>
+            <p class="text-center text-gray-600 mt-4">
+                Nigeria's premier destination for luxury fashion, where elegance meets contemporary style.
+            </p>
+        </div>
+    </section>
+
+    <!-- Our Story -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-serif mb-6">Our Story</h2>
+                        <div class="prose prose-lg">
+                            <p>
+                                Established in 2021, REY PREMIUM VOGUE emerged from a vision to revolutionize 
+                                Nigeria's luxury fashion landscape. What began as a dream to provide 
+                                exceptional fashion pieces has blossomed into Lagos's most distinguished 
+                                luxury fashion destination.
+                            </p>
+                            <p class="mt-4">
+                                Our curated collection showcases the finest in both menswear and womenswear, 
+                                from exquisite formal attire to sophisticated casual wear. We take pride in 
+                                offering exclusive designer pieces, premium fragrances, and luxury accessories 
+                                that cater to discerning tastes.
+                            </p>
+                            <p class="mt-4">
+                                Located in the heart of Delta State, our flagship store provides a personalized 
+                                shopping experience where luxury meets exceptional service. Our expert 
+                                fashion consultants are dedicated to helping you discover pieces that 
+                                reflect your unique style and personality.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <img src="{% static 'images/about/store.png' %}" 
+                             alt="REY PREMIUM VOGUE Store" 
+                             class="rounded-lg shadow-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Values -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-serif text-center mb-12">Our Values</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <div class="w-16 h-16 bg-accent bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-medium mb-4">Excellence</h3>
+                    <p class="text-gray-600">
+                        We partner with renowned luxury brands and designers to bring you the finest 
+                        quality products, ensuring each piece meets international standards of excellence.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <div class="w-16 h-16 bg-accent bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-medium mb-4">Innovation</h3>
+                    <p class="text-gray-600">
+                        We stay ahead of global fashion trends while maintaining our commitment to 
+                        timeless elegance, offering you the perfect blend of classic and contemporary styles.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <div class="w-16 h-16 bg-accent bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-medium mb-4">Personalization</h3>
+                    <p class="text-gray-600">
+                        We provide personalized styling services and exclusive shopping experiences, 
+                        ensuring each client finds pieces that perfectly match their individual style.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Mission -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-serif mb-6">Our Mission</h2>
+                <p class="text-xl text-gray-600 leading-relaxed">
+                    To be Nigeria's leading luxury fashion destination, offering an unparalleled selection 
+                    of premium clothing, accessories, and fragrances. We strive to provide an exceptional 
+                    shopping experience that combines personalized service with the convenience of modern retail.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-serif text-center mb-12">Leadership</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <img src="{% static 'images/team/ceo.jpeg' %}" 
+                         alt="CEO" 
+                         class="w-full h-64 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-medium">Ruemu Onovwiona</h3>
+                        <p class="text-gray-500">CEO & Founder</p>
+                        <p class="text-gray-600 mt-4">
+                            A visionary leader in Nigeria's luxury fashion industry, Ruemu brings extensive 
+                            experience in premium retail and a passion for delivering exceptional customer experiences.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Store Experience -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-serif text-center mb-12">The REY Experience</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h3 class="text-xl font-medium mb-4">Luxury Shopping</h3>
+                        <p class="text-gray-600">
+                            Our flagship store offers a curated selection of premium brands, including exclusive 
+                            designer collections, luxury fragrances, and bespoke accessories. Experience 
+                            personalized styling sessions in our elegant shopping environment.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h3 class="text-xl font-medium mb-4">Premium Service</h3>
+                        <p class="text-gray-600">
+                            Enjoy white-glove delivery service, expert fashion consultation, and exclusive 
+                            access to new collections. Our team of fashion experts is dedicated to helping 
+                            you discover pieces that elevate your wardrobe.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-serif mb-6">Stay Connected</h2>
+                <p class="text-gray-600 mb-8">
+                    Join our exclusive circle to receive updates on new arrivals, special collections, 
+                    and VIP events. Be the first to know about our latest offerings and exclusive promotions.
+                </p>
+                <form class="max-w-md mx-auto flex gap-4">
+                    <input type="email" placeholder="Enter your email" 
+                           class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                    <button type="submit" 
+                            class="bg-accent hover:bg-opacity-90 text-white px-6 py-2 rounded-lg transition duration-300">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %} 

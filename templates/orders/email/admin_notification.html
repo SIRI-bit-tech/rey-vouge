@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>New Order Notification - REY PREMIUM VOGUE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1a1a1a;
+        }
+        .order-details {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .order-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .order-items th, .order-items td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        .total {
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>New Order Received</h1>
+        <p>Order #{{ order.id }}</p>
+    </div>
+
+    <div class="order-details">
+        <h2>Customer Details</h2>
+        <p><strong>Name:</strong> {{ shipping.first_name }} {{ shipping.last_name }}</p>
+        <p><strong>Email:</strong> {{ shipping.email }}</p>
+        <p><strong>Phone:</strong> {{ shipping.phone_number }}</p>
+        <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+        <p><strong>Shipping Address:</strong><br>
+            {{ shipping.address }}<br>
+            {{ shipping.city }}, {{ shipping.state }} {{ shipping.postal_code }}<br>
+            {{ shipping.country }}
+        </p>
+    </div>
+
+    <table class="order-items">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>
+                    {{ item.product.name }}<br>
+                    <small>Size: {{ item.size }}{% if item.color %} | Color: {{ item.color }}{% endif %}</small>
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>₦{{ item.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        
+    <div class="total">
+        <p>Subtotal: ₦{{ order.subtotal }}</p>
+        <p>Shipping: ₦{{ order.shipping_cost }}</p>
+        <p>Total: ₦{{ order.total_amount }}</p>
+    </div>
+
+    <p style="margin-top: 30px;">
+        <a href="{{ site_url }}/admin/orders/order/{{ order.id }}/change/" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Order in Admin</a>
+    </p>
+</body>
+</html> 

@@ -1,0 +1,39 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.db
+
+# IDE specific
+.vscode/
+
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.sqlite3
+db.sqlite3
+
+# Media folder - include categories and products with their contents
+media/*
+!media/categories/
+!media/products/
+!media/categories/**
+!media/products/**
+
+# Virtual Environment
+venv/
+.env
+
+# Django migrations
+*/migrations/*
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+
+# Local settings
+*.local

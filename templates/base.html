@@ -1,0 +1,522 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}REY PREMIUM VOGUE - Premium Fashion Destination{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}REY PREMIUM VOGUE offers premium fashion clothing and accessories. Shop the latest trends in Nigerian fashion.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}fashion, premium clothing, Nigerian fashion, designer wear, REY PREMIUM VOGUE{% endblock %}">
+    <meta name="author" content="REY PREMIUM VOGUE">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ block.super }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block.super }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.jpg' %}{% endblock %}">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ block.super }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ block.super }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ block.super }}{% endblock %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="{% static 'images/logo.jpg' %}" as="image">
+    <link rel="preload" href="{% static 'css/styles.css' %}" as="style">
+    
+    <!-- Schema.org Markup -->
+    {% block schema_markup %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "REY PREMIUM VOGUE",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.jpg' %}",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+234-XXX-XXX-XXXX",
+            "contactType": "customer service"
+        },
+        "sameAs": [
+            "https://facebook.com/reypremiumvogue",
+            "https://instagram.com/reypremiumvogue"
+        ]
+    }
+    </script>
+    {% endblock %}
+    
+    <link rel="icon" type="image/png" href="{% static 'images/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}" />
+    <meta name="apple-mobile-web-app-title" content="reyvouge" />
+    <link rel="manifest" href="{% static 'images/site.webmanifest' %}" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a1a1a',
+                        secondary: '#9a8a78',
+                        accent: '#d4af37',
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="font-sans bg-white">
+    <!-- Mobile Sidebar -->
+    <div id="mobileSidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden lg:hidden">
+        <div class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out" id="sidebarPanel">
+            <div class="flex flex-col h-full">
+                <!-- Close Button -->
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h2 class="text-xl font-serif">Menu</h2>
+                    <button onclick="toggleMobileSidebar()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Navigation Links -->
+                <nav class="flex-1 px-4 py-6 space-y-4">
+                    <a href="{% url 'core:home' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-home w-6"></i> Home
+                    </a>
+                    <a href="{% url 'products:categories' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-shopping-bag w-6"></i> Shop
+                    </a>
+                    <a href="{% url 'core:about' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-info-circle w-6"></i> About
+                    </a>
+                    <a href="{% url 'core:contact' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-envelope w-6"></i> Contact
+                    </a>
+                    {% if user.is_authenticated %}
+                    <div class="border-t my-4"></div>
+                    <a href="{% url 'accounts:profile' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-user-circle w-6"></i> My Account
+                    </a>
+                    <a href="{% url 'accounts:wishlist' %}" class="block py-2 hover:text-accent transition duration-300">
+                        <i class="far fa-heart w-6"></i> My Wishlist
+                    </a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left py-2 hover:text-accent transition duration-300">
+                        <i class="fas fa-sign-out-alt w-6"></i> Logout
+                        </button>
+                    </form>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                
+                <!-- Logo -->
+                <a href="{% url 'core:home' %}" class="font-serif text-2xl">
+                    REY VOGUE
+                </a>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden lg:flex items-center space-x-8">
+                    <a href="{% url 'core:home' %}" class="hover:text-accent transition duration-300">Home</a>
+                    <a href="{% url 'products:categories' %}" class="hover:text-accent transition duration-300">Shop</a>
+                    <a href="{% url 'core:about' %}" class="hover:text-accent transition duration-300">About</a>
+                    <a href="{% url 'core:contact' %}" class="hover:text-accent transition duration-300">Contact</a>
+                </nav>
+                
+                <!-- Search and Icons -->
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <div class="relative hidden md:block">
+                        <input type="text" placeholder="Search..."
+                               class="w-48 pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-accent">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Mobile Search Button -->
+                    <button onclick="toggleMobileSearch()" class="md:hidden text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-search text-xl"></i>
+                    </button>
+                    
+                    <!-- Wishlist -->
+                    <a href="{% url 'accounts:wishlist' %}" class="text-gray-500 hover:text-accent relative">
+                        <i class="far fa-heart text-xl"></i>
+                        <span id="wishlist-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center text-xs {% if not wishlist_count %}hidden{% endif %}">                            {{ wishlist_count|default:0 }}
+                            </span>
+                    </a>
+
+                    <!-- Cart -->
+                    <a href="{% url 'orders:cart' %}" class="text-gray-500 hover:text-accent relative">
+                        <i class="fas fa-shopping-bag text-xl"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center text-xs {% if not cart_count %}hidden{% endif %}">                            {{ cart_count|default:0 }}
+                            </span>
+                    </a>
+                    
+                    <!-- Desktop User Menu -->
+                    <div class="hidden lg:block relative" x-data="{ open: false }">
+                        {% if user.is_authenticated %}
+                        <button @click="open = !open" 
+                                class="flex items-center space-x-1 text-gray-500 hover:text-accent">
+                            <i class="fas fa-user text-xl"></i>
+                            <i class="fas fa-chevron-down text-xs" :class="{ 'transform rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" 
+                             x-cloak
+                             style="display: none;"
+                             @click.outside="open = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform scale-95"
+                             x-transition:enter-end="opacity-100 transform scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 transform scale-100"
+                             x-transition:leave-end="opacity-0 transform scale-95"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                            <a href="{% url 'accounts:profile' %}" 
+                               @click="open = false"
+                               class="block px-4 py-2 hover:bg-gray-100">
+                                <i class="fas fa-user-circle mr-2"></i>My Account
+                            </a>
+                            <a href="{% url 'accounts:wishlist' %}" 
+                               @click="open = false"
+                               class="block px-4 py-2 hover:bg-gray-100">
+                                <i class="far fa-heart mr-2"></i>My Wishlist
+                            </a>
+                            <div class="border-t my-2"></div>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" 
+                               @click="open = false"
+                                        class="w-full text-left px-4 py-2 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}" class="text-gray-500 hover:text-accent">
+                            <i class="fas fa-user text-xl"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+        <!-- Mobile Search Bar (Hidden by default) -->
+        <div id="mobileSearch" class="lg:hidden hidden border-t">
+            <div class="container mx-auto px-4 py-3">
+                <div class="relative">
+                    <input type="text" placeholder="Search..."
+                           class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-accent">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {% include 'includes/breadcrumbs.html' %}
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        {% if messages %}
+            <div class="container mx-auto px-4 py-4">
+                {% for message in messages %}
+                    <div class="p-4 mb-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white mt-16">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h3 class="text-xl font-serif mb-4">About REY PREMIUM VOGUE</h3>
+                    <p class="text-gray-400">Experience luxury fashion with our premium collection of men's clothing and accessories.</p>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-xl font-serif mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="{% url 'core:about' %}" class="hover:text-accent">About Us</a></li>
+                        <li><a href="{% url 'core:contact' %}" class="hover:text-accent">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-accent">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-accent">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Customer Service -->
+                <div>
+                    <h3 class="text-xl font-serif mb-4">Customer Service</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-accent">Shipping Information</a></li>
+                        <li><a href="#" class="hover:text-accent">Returns & Exchanges</a></li>
+                        <li><a href="#" class="hover:text-accent">Size Guide</a></li>
+                        <li><a href="#" class="hover:text-accent">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Newsletter -->
+                <div>
+                    <h3 class="text-xl font-serif mb-4">Newsletter</h3>
+                    <p class="text-gray-400 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <form id="newsletter-form" class="space-y-4">
+                        {% csrf_token %}
+                        <div class="relative">
+                            <input type="email" name="email" id="newsletter-email" placeholder="Enter your email address" required
+                               class="w-full px-4 py-2 bg-white bg-opacity-10 border border-gray-600 rounded-full focus:outline-none focus:border-accent">
+                            <div id="newsletter-error" class="absolute left-0 -bottom-6 text-sm text-red-500 hidden"></div>
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-accent hover:bg-opacity-90 text-white py-2 rounded-full transition duration-300 relative">
+                            <span id="newsletter-button-text">Subscribe</span>
+                            <span id="newsletter-loading" class="absolute inset-0 flex items-center justify-center hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Bottom Footer -->
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">&copy; 2024 REY PREMIUM VOGUE. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-accent"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-accent"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-accent"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-accent"><i class="fab fa-pinterest-p"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Add notification container at the end of body -->
+    <div id="notification" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+    </div>
+
+    <script>
+        // Add notification styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                background-color: #4F46E5;
+                color: white;
+                z-index: 50;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            .notification.show {
+                transform: translateX(0);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <script>
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const panel = document.getElementById('sidebarPanel');
+            
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                setTimeout(() => {
+                    panel.classList.remove('-translate-x-full');
+                }, 100);
+            } else {
+                panel.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    sidebar.classList.add('hidden');
+                }, 300);
+            }
+        }
+        
+        function toggleMobileSearch() {
+            const searchBar = document.getElementById('mobileSearch');
+            searchBar.classList.toggle('hidden');
+        }
+        
+        // Close sidebar when clicking outside
+        document.getElementById('mobileSidebar').addEventListener('click', function(event) {
+            if (event.target === this) {
+                toggleMobileSidebar();
+            }
+        });
+    </script>
+
+    <script>
+        document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const email = document.getElementById('newsletter-email').value;
+            const buttonText = document.getElementById('newsletter-button-text');
+            const loading = document.getElementById('newsletter-loading');
+            const errorDiv = document.getElementById('newsletter-error');
+            
+            // Reset error message
+            errorDiv.textContent = '';
+            errorDiv.classList.add('hidden');
+            
+            // Show loading state
+            buttonText.classList.add('invisible');
+            loading.classList.remove('hidden');
+            form.querySelector('button').disabled = true;
+            
+            fetch('{% url "core:newsletter_subscribe" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `email=${encodeURIComponent(email)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    form.reset();
+                } else {
+                    errorDiv.textContent = data.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+            })
+            .finally(() => {
+                // Reset button state
+                buttonText.classList.remove('invisible');
+                loading.classList.add('hidden');
+                form.querySelector('button').disabled = false;
+            });
+        });
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-y-full ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Slide in
+            requestAnimationFrame(() => {
+                notification.classList.remove('translate-y-full');
+            });
+
+            // Slide out and remove after delay
+            setTimeout(() => {
+                notification.classList.add('translate-y-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Error Tracking -->
+    {% if not debug %}
+    <script
+        src="//d2wy8f7a9ursnm.cloudfront.net/v7/bugsnag.min.js"
+        crossorigin="anonymous"
+    ></script>
+    <script>
+        Bugsnag.start({
+            apiKey: '{{ BUGSNAG_API_KEY }}',
+            releaseStage: '{{ ENVIRONMENT }}',
+            enabledReleaseStages: ['production', 'staging'],
+            metadata: {
+                account: {
+                    id: '{{ request.user.id|default:"" }}',
+                    email: '{{ request.user.email|default:"" }}',
+                }
+            }
+        });
+
+        window.addEventListener('error', function(e) {
+            Bugsnag.notify(e.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            Bugsnag.notify(e.reason);
+        });
+    </script>
+
+    <!-- Performance Monitoring -->
+    <script type="module">
+        import BugsnagPerformance from '//d2wy8f7a9ursnm.cloudfront.net/v1/bugsnag-performance.min.js'
+        BugsnagPerformance.start({ apiKey: '{{ BUGSNAG_API_KEY }}' })
+    </script>
+    {% endif %}
+</body>
+</html> 

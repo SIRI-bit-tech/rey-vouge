@@ -1,0 +1,30 @@
+Thank You for Your Order!
+Order #{{ order.id }}
+
+Order Details
+------------
+Order Date: {{ order.created_at|date:"F j, Y" }}
+
+Shipping Address:
+{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}
+{{ order.shipping_address.address }}
+{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}
+{{ order.shipping_address.country }}
+
+Order Items:
+{% for item in order.items.all %}
+- {{ item.product.name }}
+  Size: {{ item.size }}{% if item.color %} | Color: {{ item.color }}{% endif %}
+  Quantity: {{ item.quantity }}
+  Price: ₦{{ item.price }}
+{% endfor %}
+
+Order Summary:
+-------------
+Subtotal: ₦{{ order.subtotal }}
+Shipping: ₦{{ order.shipping_cost }}
+Total: ₦{{ order.total_amount }}
+
+If you have any questions about your order, please contact us at reyspremium@gmail.com
+
+© {% now "Y" %} REY PREMIUM VOGUE. All rights reserved. 

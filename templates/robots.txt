@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /static/
+Allow: /media/
+Allow: /products/
+Allow: /about/
+Allow: /contact/
+Allow: /store-locations/
+Allow: /promotions/
+
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /cart/
+Disallow: /checkout/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml 

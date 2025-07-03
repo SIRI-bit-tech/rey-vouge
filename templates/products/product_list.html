@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #4F46E5;
+        color: white;
+        z-index: 50;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    .notification.show {
+        transform: translateX(0);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize wishlist count when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if user.is_authenticated %}
+            fetch('/accounts/wishlist/count/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateWishlistCount(data.wishlist_count);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        {% endif %}
+    });
+
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        return uri + separator + key + "=" + value;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = 'notification ' + (type === 'error' ? 'bg-red-500' : 'bg-accent');
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    function updateWishlistCount(count) {
+        const wishlistCount = document.getElementById('wishlist-count');
+        if (wishlistCount) {
+            if (count > 0) {
+                wishlistCount.textContent = count;
+                wishlistCount.style.display = 'flex';
+            } else {
+                wishlistCount.textContent = '0';
+                wishlistCount.style.display = 'none';
+            }
+        }
+    }
+
+    function toggleWishlist(productId) {
+        {% if user.is_authenticated %}
+            fetch(`/accounts/wishlist/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update all instances of this product's heart icon
+                    const heartIcons = document.querySelectorAll(`button[onclick="toggleWishlist(${productId})"] i`);
+                    heartIcons.forEach(icon => {
+                        if (data.added) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas', 'text-accent');
+                            showNotification('Added to wishlist');
+                        } else {
+                            icon.classList.remove('fas', 'text-accent');
+                            icon.classList.add('far');
+                            showNotification('Removed from wishlist');
+                        }
+                    });
+                    
+                    // Update wishlist count
+                    updateWishlistCount(data.wishlist_count);
+                } else if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showNotification(data.message || 'Failed to update wishlist', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to update wishlist. Please try again.', 'error');
+            });
+        {% else %}
+            window.location.href = "{% url 'accounts:login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    function addToCart(productId, quantity = 1) {
+        {% if user.is_authenticated %}
+            fetch(`/orders/cart/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_count;
+                        cartCount.style.display = 'flex';
+                    }
+                    showNotification('Added to cart');
+                    
+                    const button = document.querySelector(`button[onclick="addToCart(${productId})"]`);
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.classList.remove('text-gray-400', 'hover:text-accent');
+                    button.classList.add('text-green-500');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="fas fa-shopping-bag"></i>';
+                        button.classList.remove('text-green-500');
+                        button.classList.add('text-gray-400', 'hover:text-accent');
+                    }, 2000);
+                } else if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showNotification(data.message || 'Failed to add item to cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to add item to cart. Please try again.', 'error');
+            });
+        {% else %}
+            window.location.href = "{% url 'accounts:login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    function quickView(productId) {
+        const modal = document.getElementById('quickViewModal');
+        const content = document.getElementById('quickViewContent');
+        
+        // Show loading state
+        content.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-3xl text-accent"></i></div>';
+        modal.classList.remove('hidden');
+        
+        // Fetch product details
+        fetch(`/products/quick-view/${productId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    content.innerHTML = data.html;
+                } else {
+                    content.innerHTML = '<div class="text-center py-12 text-red-500">Error loading product details</div>';
+                }
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="text-center py-12 text-red-500">Error loading product details</div>';
+                console.error('Error:', error);
+            });
+    }
+
+    function closeQuickView() {
+        const modal = document.getElementById('quickViewModal');
+        modal.classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('quickViewModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            closeQuickView();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeQuickView();
+        }
+    });
+</script>
+{% endblock %}
+
+{% block title %}
+    {% if category %}
+        {{ category.name }} - REY PREMIUM VOGUE
+    {% else %}
+        All Products - REY PREMIUM VOGUE
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+    <!-- Page Header -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-serif text-center">
+                {% if category %}
+                    {{ category.name }}
+                {% else %}
+                    All Products
+                {% endif %}
+            </h1>
+            {% if category %}
+                <p class="text-center text-gray-600 mt-4">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Filters Sidebar -->
+                <div class="lg:w-1/4">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h2 class="text-xl font-serif mb-6">Filters</h2>
+                        
+                        <form id="filterForm" method="get" class="space-y-6">
+                            <!-- Categories -->
+                            <div>
+                                <h3 class="font-semibold mb-3">Categories</h3>
+                                <div class="space-y-2">
+                                    <a href="{% url 'products:product_list' %}" 
+                                       class="block py-2 px-3 rounded-lg hover:bg-accent/10 transition duration-300 {% if not category %}bg-accent/10 text-accent{% endif %}">
+                                        All Products
+                                    </a>
+                                    {% for cat in categories %}
+                                    <a href="{% url 'products:product_list_by_category' cat.slug %}" 
+                                       class="block py-2 px-3 rounded-lg hover:bg-accent/10 transition duration-300 {% if category.slug == cat.slug %}bg-accent/10 text-accent{% endif %}">
+                                        {{ cat.name }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Price Range -->
+                            <div>
+                                <h3 class="font-semibold mb-3">Price Range</h3>
+                                <div class="flex items-center space-x-4">
+                                    <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Min"
+                                           class="w-full px-3 py-2 border rounded-lg">
+                                    <span>-</span>
+                                    <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Max"
+                                           class="w-full px-3 py-2 border rounded-lg">
+                                </div>
+                            </div>
+                            
+                            <!-- Sizes -->
+                            <div>
+                                <h3 class="font-semibold mb-3">Sizes</h3>
+                                <div class="grid grid-cols-3 gap-2">
+                                    {% for size in available_sizes %}
+                                    <label class="flex items-center justify-center px-3 py-2 border rounded-lg cursor-pointer
+                                                {% if size in selected_sizes %}bg-accent text-white{% endif %}">
+                                        <input type="checkbox" name="size" value="{{ size }}"
+                                               {% if size in selected_sizes %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                        {{ size }}
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Colors -->
+                            <div>
+                                <h3 class="font-semibold mb-3">Colors</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    {% for color in available_colors %}
+                                    <label class="relative cursor-pointer">
+                                        <input type="checkbox" name="color" value="{{ color }}"
+                                               {% if color in selected_colors %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                        <span class="inline-block w-8 h-8 rounded-full border-2
+                                                   {% if color in selected_colors %}border-accent{% else %}border-transparent{% endif %}"
+                                              style="background-color: {{ color }}">
+                                            <span class="sr-only">{{ color }}</span>
+                                        </span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Sort field -->
+                            <input type="hidden" name="sort" value="{{ current_sort|default:'newest' }}">
+                            
+                            <button type="submit" 
+                                    class="w-full bg-accent hover:bg-opacity-90 text-white py-2 rounded-lg">
+                                Apply Filters
+                            </button>
+                            
+                            {% if request.GET %}
+                            <a href="{% url 'products:product_list' %}" 
+                               class="block w-full text-center text-gray-600 hover:text-accent mt-2">
+                                Clear All Filters
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Products Grid -->
+                <div class="lg:w-3/4">
+                    <!-- Sort Options -->
+                    <div class="flex justify-between items-center mb-8">
+                        <p class="text-gray-600">
+                            Showing {{ products.start_index|default:0 }} - {{ products.end_index|default:0 }} 
+                            of {{ products.paginator.count|default:0 }} products
+                            {% if category %}in {{ category.name }}{% endif %}
+                        </p>
+                        <select name="sort" class="px-4 py-2 border rounded-lg"
+                                onchange="window.location.href = updateQueryStringParameter(window.location.href, 'sort', this.value)">
+                            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+                            <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="name_asc" {% if current_sort == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+                            <option value="name_desc" {% if current_sort == 'name_desc' %}selected{% endif %}>Name: Z to A</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Products -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for product in products %}
+                        <div class="bg-white rounded-lg overflow-hidden shadow-lg group">
+                            <div class="relative h-80">
+                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                     class="w-full h-full object-cover transition duration-300 group-hover:scale-110">
+                                {% if product.sale_price %}
+                                <span class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm">
+                                    Sale
+                                </span>
+                                {% endif %}
+                                <!-- Quick View Button -->
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                                    <button onclick="quickView({{ product.id }})"
+                                            class="bg-white text-primary px-6 py-2 rounded-full transform -translate-y-4 group-hover:translate-y-0 transition duration-300">
+                                        Quick View
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-2">
+                                    <a href="{{ product.get_absolute_url }}" class="hover:text-accent transition duration-300">
+                                        {{ product.name }}
+                                    </a>
+                                </h3>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        {% if product.sale_price %}
+                                        <span class="text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                                        <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                                        {% else %}
+                                        <span class="text-gray-900 font-semibold">₦{{ product.price }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="toggleWishlist({{ product.id }})"
+                                                class="text-gray-400 hover:text-accent transition duration-300">
+                                            <i class="{% if product in user.wishlist.products.all %}fas text-accent{% else %}far{% endif %} fa-heart"></i>
+                                        </button>
+                                        <button onclick="addToCart({{ product.id }})"
+                                                class="text-gray-400 hover:text-accent transition duration-300">
+                                            <i class="fas fa-shopping-bag"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-gray-600">No products found{% if category %} in {{ category.name }}{% endif %}.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if products.has_other_pages %}
+                    <div class="mt-8 flex justify-center space-x-2">
+                            {% if products.has_previous %}
+                        <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           class="px-4 py-2 border rounded-lg hover:bg-accent hover:text-white">
+                                Previous
+                            </a>
+                            {% endif %}
+                            
+                            {% for num in products.paginator.page_range %}
+                                {% if num == products.number %}
+                                <span class="px-4 py-2 border rounded-lg bg-accent text-white">{{ num }}</span>
+                                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                               class="px-4 py-2 border rounded-lg hover:bg-accent hover:text-white">
+                                    {{ num }}
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           class="px-4 py-2 border rounded-lg hover:bg-accent hover:text-white">
+                                Next
+                            </a>
+                            {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick View Modal -->
+    <div id="quickViewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="container mx-auto px-4 h-full flex items-center justify-center">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6" id="quickViewContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

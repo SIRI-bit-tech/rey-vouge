@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>Newsletter Management</h2>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="mb-0">Total Active Subscribers: <span class="badge bg-success">{{ total_subscribers }}</span></p>
+                    <p class="mb-0">Inactive Subscribers: <span class="badge bg-secondary">{{ inactive_subscribers }}</span></p>
+                </div>
+                <a href="{% url 'core:send_newsletter' %}" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Newsletter
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Subscribed Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscriber in subscribers %}
+                        <tr id="subscriber-{{ subscriber.id }}">
+                            <td>{{ subscriber.email }}</td>
+                            <td>
+                                {% if subscriber.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ subscriber.created_at|date:"F j, Y" }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger delete-subscriber" 
+                                        data-subscriber-id="{{ subscriber.id }}"
+                                        data-subscriber-email="{{ subscriber.email }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No subscribers found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.delete-subscriber').click(function() {
+        const subscriberId = $(this).data('subscriber-id');
+        const subscriberEmail = $(this).data('subscriber-email');
+        
+        if (confirm(`Are you sure you want to delete subscriber ${subscriberEmail}?`)) {
+            $.ajax({
+                url: `/newsletter/delete/${subscriberId}/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`#subscriber-${subscriberId}`).fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                        showToast('success', response.message);
+                    } else {
+                        showToast('error', response.message);
+                    }
+                },
+                error: function() {
+                    showToast('error', 'Failed to delete subscriber');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

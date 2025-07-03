@@ -1,0 +1,138 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Send Newsletter | REY PREMIUM VOGUE{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .newsletter-form {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+    .form-group input[type="text"],
+    .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .form-group textarea {
+        min-height: 300px;
+    }
+    .submit-btn {
+        background: #417690;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .submit-btn:hover {
+        background: #2b5172;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    .alert-success {
+        background: #dff0d8;
+        color: #3c763d;
+        border: 1px solid #d6e9c6;
+    }
+    .alert-error {
+        background: #f2dede;
+        color: #a94442;
+        border: 1px solid #ebccd1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="newsletter-form">
+    <h1>Send Newsletter</h1>
+    
+    <div id="message" style="display: none;"></div>
+    
+    <form id="newsletter-form" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" name="subject" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">Content (HTML supported):</label>
+            <textarea id="content" name="content" required></textarea>
+        </div>
+        
+        <button type="submit" class="submit-btn">
+            <span id="submit-text">Send Newsletter</span>
+            <span id="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Sending...
+            </span>
+        </button>
+    </form>
+</div>
+
+<script>
+document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const submitBtn = form.querySelector('button');
+    const submitText = document.getElementById('submit-text');
+    const loading = document.getElementById('loading');
+    const messageDiv = document.getElementById('message');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitText.style.display = 'none';
+    loading.style.display = 'inline';
+    messageDiv.style.display = 'none';
+    
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams(new FormData(form))
+    })
+    .then(response => response.json())
+    .then(data => {
+        messageDiv.className = data.success ? 'alert alert-success' : 'alert alert-error';
+        messageDiv.textContent = data.message;
+        messageDiv.style.display = 'block';
+        
+        if (data.success) {
+            form.reset();
+        }
+    })
+    .catch(error => {
+        messageDiv.className = 'alert alert-error';
+        messageDiv.textContent = 'An error occurred. Please try again.';
+        messageDiv.style.display = 'block';
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline';
+        loading.style.display = 'none';
+    });
+});
+</script>
+{% endblock %} 

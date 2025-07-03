@@ -1,0 +1,611 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} - REY PREMIUM VOGUE{% endblock %}
+{% block meta_description %}{{ product.description|truncatewords:50 }}{% endblock %}
+{% block meta_keywords %}{{ product.name }}, {{ product.category.name }}, fashion, premium clothing{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": "{{ product.name }}",
+    "image": "{{ request.scheme }}://{{ request.get_host }}{{ product.images.first.image.url }}",
+    "description": "{{ product.description }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "REY PREMIUM VOGUE"
+    },
+    "offers": {
+        "@type": "Offer",
+        "url": "{{ request.build_absolute_uri }}",
+        "priceCurrency": "NGN",
+        "price": "{{ product.get_price }}",
+        "availability": "{% if product.is_available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+        "seller": {
+            "@type": "Organization",
+            "name": "REY PREMIUM VOGUE"
+        }
+    }
+    {% if product.reviews.exists %},
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ product.average_rating }}",
+        "reviewCount": "{{ product.reviews.count }}"
+    },
+    "review": [
+        {% for review in product.reviews.all %}
+        {
+            "@type": "Review",
+            "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "{{ review.rating }}"
+            },
+            "author": {
+                "@type": "Person",
+                "name": "{{ review.user.get_full_name }}"
+            },
+            "reviewBody": "{{ review.comment }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+    {% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Product Images -->
+                <div>
+            <div class="relative mb-4">
+                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                     class="w-full rounded-lg" id="mainImage">
+                        {% if product.sale_price %}
+                        <span class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm">
+                            Sale
+                        </span>
+                        {% endif %}
+                    </div>
+            {% if product.images.count > 1 %}
+            <div class="grid grid-cols-4 gap-4">
+                        {% for image in product.images.all %}
+                        <button onclick="changeImage('{{ image.image.url }}')"
+                        class="border-2 rounded-lg overflow-hidden hover:border-accent transition duration-300
+                                       {% if forloop.first %}border-accent{% endif %}">
+                    <img src="{{ image.image.url }}" alt="{{ product.name }}" class="w-full">
+                        </button>
+                        {% endfor %}
+                    </div>
+            {% endif %}
+                </div>
+
+        <!-- Product Details -->
+                <div>
+                    <h1 class="text-3xl font-serif mb-4">{{ product.name }}</h1>
+                    
+                    <!-- Price -->
+                    <div class="mb-6">
+                        {% if product.sale_price %}
+                <span class="text-3xl text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                <span class="text-xl text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                <span class="text-red-500 ml-2">Save {{ product.discount_percentage }}%</span>
+                        {% else %}
+                <span class="text-3xl text-gray-900 font-semibold">₦{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    
+            <!-- Description -->
+            <div class="prose prose-lg mb-8">
+                {{ product.description|linebreaks }}
+                    </div>
+                    
+            <!-- Sizes -->
+            {% if product.available_sizes %}
+            <div class="mb-6">
+                <h3 class="font-semibold mb-2">Select Size:</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for size in product.size_list %}
+                    <label class="size-option relative">
+                                    <input type="radio" name="size" value="{{ size }}" 
+                               class="peer absolute opacity-0 w-full h-full cursor-pointer">
+                        <span class="inline-block px-4 py-2 border-2 rounded-lg cursor-pointer
+                                   hover:border-accent transition duration-300
+                                   peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white">
+                                        {{ size }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+            {% endif %}
+
+            <!-- Colors -->
+            {% if product.colors %}
+            <div class="mb-6">
+                <h3 class="font-semibold mb-2">Select Color:</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for color in product.color_list %}
+                    <label class="color-option relative">
+                                    <input type="radio" name="color" value="{{ color }}"
+                               class="peer absolute opacity-0 w-full h-full cursor-pointer">
+                        <span class="inline-block w-8 h-8 rounded-full border-2 cursor-pointer
+                                               hover:border-accent transition duration-300
+                                   peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/50"
+                              style="background-color: {{ color }}">
+                        </span>
+                        <span class="block text-xs text-center mt-1">{{ color }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+            {% endif %}
+                        
+                        <!-- Quantity -->
+            <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center border rounded-lg">
+                    <button class="px-4 py-2 text-gray-500 hover:text-accent" onclick="updateQuantity(-1)">-</button>
+                    <input type="number" id="quantity" value="1" min="1" max="{{ product.stock }}"
+                           class="w-16 text-center border-x py-2 focus:outline-none">
+                    <button class="px-4 py-2 text-gray-500 hover:text-accent" onclick="updateQuantity(1)">+</button>
+                            </div>
+                <span class="text-gray-500">{{ product.stock }} in stock</span>
+                        </div>
+                        
+            <!-- Actions -->
+            <div class="flex space-x-4 mb-8">
+                <button onclick="addToCart({{ product.id }}, parseInt(document.getElementById('quantity').value))"
+                        class="flex-1 bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                                <i class="fas fa-shopping-bag mr-2"></i>
+                                Add to Cart
+                            </button>
+                <button onclick="toggleWishlist({{ product.id }})"
+                        class="px-4 py-3 border-2 rounded-lg hover:border-accent transition duration-300">
+                    <i class="{% if product in user.wishlist.products.all %}fas text-accent{% else %}far{% endif %} fa-heart"></i>
+                            </button>
+                        </div>
+                    
+                    <!-- Additional Info -->
+            <div class="border-t pt-6">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    {% if product.brand %}
+                                <div>
+                        <span class="text-gray-500">Brand:</span>
+                        <span class="ml-2">{{ product.brand }}</span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="text-gray-500">Category:</span>
+                        <a href="{% url 'products:product_list_by_category' product.category.slug %}" 
+                           class="ml-2 text-accent hover:underline">
+                            {{ product.category.name }}
+                        </a>
+                    </div>
+                    {% if product.sku %}
+                            <div>
+                        <span class="text-gray-500">SKU:</span>
+                        <span class="ml-2">{{ product.sku }}</span>
+                    </div>
+                                    {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Products -->
+    {% if related_products %}
+            <div class="mt-16">
+        <h2 class="text-2xl font-serif mb-8">Related Products</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for related in related_products %}
+                    <div class="bg-white rounded-lg overflow-hidden shadow-lg group">
+                        <div class="relative h-80">
+                    <img src="{{ related.images.first.image.url }}" alt="{{ related.name }}" 
+                                 class="w-full h-full object-cover transition duration-300 group-hover:scale-110">
+                    {% if related.sale_price %}
+                            <span class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm">
+                                Sale
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold mb-2">
+                        <a href="{{ related.get_absolute_url }}" class="hover:text-accent transition duration-300">
+                            {{ related.name }}
+                                </a>
+                            </h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                            {% if related.sale_price %}
+                            <span class="text-red-500 font-semibold">₦{{ related.sale_price }}</span>
+                            <span class="text-gray-400 line-through ml-2">₦{{ related.price }}</span>
+                                    {% else %}
+                            <span class="text-gray-900 font-semibold">₦{{ related.price }}</span>
+                                    {% endif %}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="toggleWishlist({{ related.id }})"
+                                    class="text-gray-400 hover:text-accent transition duration-300">
+                                <i class="{% if related in user.wishlist.products.all %}fas text-accent{% else %}far{% endif %} fa-heart"></i>
+                            </button>
+                            <button onclick="addToCart({{ related.id }})"
+                                    class="text-gray-400 hover:text-accent transition duration-300">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Reviews Section -->
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-serif">Customer Reviews</h2>
+                    {% if user.is_authenticated %}
+                        <button onclick="openReviewModal()"
+                                class="bg-accent text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition duration-300">
+                            Write a Review
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- Average Rating -->
+                <div class="flex items-center mb-8">
+                    <div class="flex items-center space-x-1">
+                        {% with ''|center:5 as range %}
+                        {% for _ in range %}
+                            <svg class="w-5 h-5 {% if forloop.counter <= product.reviews.all|length|default:0 %}text-yellow-400{% else %}text-gray-300{% endif %}" 
+                                 fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <span class="ml-2 text-gray-600">
+                        {{ product.reviews.all|length }} review{{ product.reviews.all|length|pluralize }}
+                    </span>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="space-y-8">
+                    {% for review in product.reviews.all %}
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-1">
+                                        {% with ''|center:5 as range %}
+                                        {% for _ in range %}
+                                            <svg class="w-4 h-4 {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}" 
+                                                 fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                    <span class="font-medium">{{ review.user.get_full_name|default:review.user.username }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ review.created_at|date:"F j, Y" }}</span>
+                            </div>
+                            <p class="text-gray-700">{{ review.comment }}</p>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-8 text-gray-500">
+                            No reviews yet. Be the first to review this product!
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="min-h-screen px-4 text-center">
+            <div class="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg font-medium mb-4">Write a Review</h3>
+                    <form id="review-form" class="space-y-4">
+                    <div>
+                            <label class="block text-sm font-medium text-gray-700">Rating</label>
+                            <div class="flex items-center space-x-1 mt-1">
+                            {% for i in "12345" %}
+                                    <button type="button" onclick="setRating({{ i }})"
+                                            class="text-gray-300 hover:text-yellow-400 focus:outline-none star-rating"
+                                            data-rating="{{ i }}">
+                                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                            </button>
+                            {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="review-comment" class="block text-sm font-medium text-gray-700">Comment</label>
+                            <textarea id="review-comment" name="comment" rows="4"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent"></textarea>
+                    </div>
+                    </form>
+                    </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="submitReview()"
+                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-opacity-90 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        Submit Review
+                    </button>
+                    <button type="button" onclick="closeReviewModal()"
+                            class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeImage(url) {
+        document.getElementById('mainImage').src = url;
+        document.querySelectorAll('[onclick^="changeImage"]').forEach(button => {
+            button.classList.remove('border-accent');
+            if (button.onclick.toString().includes(url)) {
+                button.classList.add('border-accent');
+            }
+        });
+    }
+    
+    function updateQuantity(change) {
+        const input = document.getElementById('quantity');
+        const newValue = parseInt(input.value) + change;
+        if (newValue >= parseInt(input.min) && newValue <= parseInt(input.max)) {
+            input.value = newValue;
+        }
+    }
+
+    // Prevent manual input of invalid quantities
+    document.getElementById('quantity').addEventListener('change', function() {
+        const value = parseInt(this.value);
+        const min = parseInt(this.min);
+        const max = parseInt(this.max);
+        if (value < min) this.value = min;
+        if (value > max) this.value = max;
+    });
+
+    function addToCart(productId, quantity = 1) {
+        {% if user.is_authenticated %}
+            const selectedSize = document.querySelector('input[name="size"]:checked')?.value;
+            const selectedColor = document.querySelector('input[name="color"]:checked')?.value;
+
+            fetch(`/orders/cart/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    quantity: quantity,
+                    size: selectedSize,
+                    color: selectedColor
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cart_count;
+                        cartCount.style.display = 'flex';
+                    }
+                    showNotification('Added to cart');
+                    
+                    const button = document.querySelector('button[onclick*="addToCart"]');
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check mr-2"></i>Added to Cart';
+                    button.classList.add('bg-green-600');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('bg-green-600');
+                    }, 2000);
+                } else if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showNotification(data.message || 'Failed to add item to cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to add item to cart. Please try again.', 'error');
+            });
+        {% else %}
+            window.location.href = "{% url 'accounts:login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    function toggleWishlist(productId) {
+        {% if user.is_authenticated %}
+            fetch(`/accounts/wishlist/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update all instances of this product's heart icon
+                    const heartIcons = document.querySelectorAll(`button[onclick="toggleWishlist(${productId})"] i`);
+                    heartIcons.forEach(icon => {
+                        if (data.added) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas', 'text-accent');
+                    showNotification('Added to wishlist');
+                        } else {
+                            icon.classList.remove('fas', 'text-accent');
+                            icon.classList.add('far');
+                            showNotification('Removed from wishlist');
+                        }
+                    });
+                    
+                    // Update wishlist count
+                    const wishlistCount = document.getElementById('wishlist-count');
+                    if (wishlistCount) {
+                        if (data.wishlist_count > 0) {
+                            wishlistCount.textContent = data.wishlist_count;
+                            wishlistCount.style.display = 'flex';
+                        } else {
+                            wishlistCount.style.display = 'none';
+                        }
+                    }
+                } else if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showNotification(data.message || 'Failed to update wishlist', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to update wishlist. Please try again.', 'error');
+            });
+        {% else %}
+            window.location.href = "{% url 'accounts:login' %}?next={{ request.path }}";
+        {% endif %}
+    }
+
+    let currentRating = 0;
+
+    function openReviewModal() {
+        document.getElementById('reviewModal').classList.remove('hidden');
+        resetReviewForm();
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.add('hidden');
+        resetReviewForm();
+    }
+
+    function resetReviewForm() {
+        currentRating = 0;
+        document.getElementById('review-comment').value = '';
+        document.querySelectorAll('.star-rating').forEach(star => {
+            star.classList.remove('text-yellow-400');
+            star.classList.add('text-gray-300');
+        });
+    }
+
+    function setRating(rating) {
+        currentRating = rating;
+        document.querySelectorAll('.star-rating').forEach(star => {
+            const starRating = parseInt(star.dataset.rating);
+            if (starRating <= rating) {
+                star.classList.remove('text-gray-300');
+                star.classList.add('text-yellow-400');
+            } else {
+                star.classList.remove('text-yellow-400');
+                star.classList.add('text-gray-300');
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function submitReview() {
+        if (currentRating === 0) {
+            showNotification('Please select a rating.', 'error');
+            return;
+        }
+
+        const comment = document.getElementById('review-comment').value;
+        if (!comment.trim()) {
+            showNotification('Please write a comment.', 'error');
+            return;
+        }
+
+        const submitButton = document.querySelector('button[onclick="submitReview()"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+
+        fetch(`/products/add-review/{{ product.slug }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                rating: currentRating,
+                comment: comment.trim()
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message || 'Review submitted successfully!', 'success');
+                closeReviewModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showNotification(data.error || 'Failed to submit review.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Submit Review';
+        });
+    }
+
+    function showNotification(message, type = 'success') {
+        // Remove any existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => notification.remove());
+
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white transform transition-all duration-300 translate-x-full`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // Slide in
+        requestAnimationFrame(() => {
+            notification.classList.remove('translate-x-full');
+        });
+
+        // Slide out and remove after delay
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+</script>
+{% endblock %} 

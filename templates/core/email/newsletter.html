@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ subject }} - REY PREMIUM VOGUE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f8f8f8;
+            padding: 30px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #d4af37;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            margin: 0 10px;
+            color: #666;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="{{ site_url }}{% static 'images/logo.jpg' %}" alt="REY PREMIUM VOGUE">
+    </div>
+    
+    <div class="header">
+        <h1>{{ subject }}</h1>
+    </div>
+
+    <div class="content">
+        {{ message|safe }}
+        
+        {% if cta_link %}
+        <div style="text-align: center;">
+            <a href="{{ cta_link }}" class="button">{{ cta_text|default:"Shop Now" }}</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <div class="social-links">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+        </div>
+        <p>You're receiving this email because you subscribed to our newsletter.</p>
+        <p>To unsubscribe, <a href="{{ unsubscribe_url }}">click here</a></p>
+        <p>© {% now "Y" %} REY PREMIUM VOGUE. All rights reserved.</p>
+    </div>
+</body>
+</html> 

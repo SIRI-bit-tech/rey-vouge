@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shop by Category - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+<!-- Categories Header -->
+<section class="bg-gray-100 py-12">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-serif text-center">Shop by Category</h1>
+    </div>
+</section>
+
+<!-- Categories Grid -->
+<section class="py-16">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for category in categories %}
+            <a href="{% url 'products:product_list_by_category' category.slug %}" 
+               class="group relative h-80 overflow-hidden rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-2xl">
+                <div class="w-full h-full {% if not category.image %}bg-gray-200 flex items-center justify-center{% endif %}">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" 
+                             class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    {% else %}
+                        <span class="text-gray-400 text-4xl">{{ category.name|first }}</span>
+                    {% endif %}
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 group-hover:from-black/80 group-hover:to-black/30 transition-all duration-500 flex flex-col items-center justify-center p-6">
+                    <h3 class="text-white text-2xl md:text-3xl font-serif text-center transform transition-transform duration-500 group-hover:scale-110 mb-2">{{ category.name }}</h3>
+                    {% if category.description %}
+                    <p class="text-white/80 text-center text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500">{{ category.description }}</p>
+                    {% endif %}
+                    <span class="mt-4 inline-block px-6 py-2 border-2 border-white text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        View Products
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %} 

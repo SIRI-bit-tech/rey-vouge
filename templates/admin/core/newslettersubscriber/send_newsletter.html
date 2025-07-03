@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post">{% csrf_token %}
+        <div>
+            {% if has_selected %}
+            <div class="messagelist">
+                <div class="info">You are sending to {{ selected_count }} selected subscriber(s)</div>
+            </div>
+            {% endif %}
+            
+            <fieldset class="module aligned">
+                <div class="form-row">
+                    <div>
+                        <label for="id_subject" class="required">Subject:</label>
+                        <input type="text" name="subject" id="id_subject" class="vTextField" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="id_content" class="required">Content:</label>
+                        <textarea name="content" id="id_content" rows="10" cols="40" class="vLargeTextField" required></textarea>
+                        <div class="help">You can use HTML for formatting. The newsletter will be sent using the template from core/emails/newsletter_update.html</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="submit-row">
+                <input type="submit" value="Send Newsletter" class="default" name="_send">
+                <a href="../" class="closelink">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %} 

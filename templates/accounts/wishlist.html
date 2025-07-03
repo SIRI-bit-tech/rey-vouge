@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}My Wishlist - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+    <!-- Wishlist Header -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-serif text-center">My Wishlist</h1>
+        </div>
+    </section>
+
+    <!-- Wishlist Content -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Sidebar Navigation -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <nav class="space-y-2">
+                            <a href="{% url 'accounts:profile' %}" 
+                               class="block px-4 py-2 rounded-lg hover:bg-gray-100">
+                                Profile Overview
+                            </a>
+                            <a href="{% url 'accounts:order_history' %}" 
+                               class="block px-4 py-2 rounded-lg hover:bg-gray-100">
+                                Order History
+                            </a>
+                            <a href="{% url 'accounts:wishlist' %}" 
+                               class="block px-4 py-2 rounded-lg bg-accent text-white">
+                                Wishlist
+                            </a>
+                            <a href="{% url 'accounts:profile_edit' %}" 
+                               class="block px-4 py-2 rounded-lg hover:bg-gray-100">
+                                Edit Profile
+                            </a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'accounts:password_change' %}" 
+                                   class="block px-4 py-2 rounded-lg hover:bg-gray-100">
+                                    Change Password
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'accounts:logout' %}" 
+                               class="block px-4 py-2 rounded-lg hover:bg-gray-100 text-red-500">
+                                Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Wishlist Items -->
+                <div class="lg:col-span-3">
+                    <div class="bg-white rounded-lg shadow-lg">
+                        {% if wishlist.products.all %}
+                            <div class="divide-y">
+                                {% for product in wishlist.products.all %}
+                                    <div class="p-6">
+                                        <div class="flex items-center space-x-6">
+                                            <!-- Product Image -->
+                                            <a href="{{ product.get_absolute_url }}" class="flex-shrink-0">
+                                                <img src="{{ product.images.first.image.url }}" 
+                                                     alt="{{ product.name }}"
+                                                     class="w-32 h-32 object-cover rounded-lg">
+                                            </a>
+
+                                            <!-- Product Info -->
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-medium">
+                                                    <a href="{{ product.get_absolute_url }}" 
+                                                       class="hover:text-accent">
+                                                        {{ product.name }}
+                                                    </a>
+                                                </h3>
+                                                <p class="text-sm text-gray-500 mt-1">
+                                                    {{ product.category.name }}
+                                                </p>
+                                                <div class="mt-2 space-y-1">
+                                                    {% if product.is_on_sale %}
+                                                        <p class="text-lg font-medium text-accent">
+                                                            ₦{{ product.sale_price }}
+                                                            <span class="text-sm text-gray-500 line-through ml-2">
+                                                                ₦{{ product.price }}
+                                                            </span>
+                                                        </p>
+                                                    {% else %}
+                                                        <p class="text-lg font-medium">₦{{ product.price }}</p>
+                                                    {% endif %}
+                                                    <p class="text-sm {% if product.stock > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                                        {{ product.stock|yesno:"In Stock,Out of Stock" }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Actions -->
+                                            <div class="flex flex-col space-y-3">
+                                                {% if product.stock > 0 %}
+                                                    <button class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-opacity-90 transition duration-300"
+                                                            onclick="addToCart('{{ product.id }}')">
+                                                        Add to Cart
+                                                    </button>
+                                                {% endif %}
+                                                <button class="px-6 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition duration-300"
+                                                        onclick="removeFromWishlist('{{ product.id }}')">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="p-6 text-center">
+                                <p class="text-gray-500">Your wishlist is empty.</p>
+                                <a href="{% url 'products:product_list' %}" 
+                                   class="inline-block mt-4 px-6 py-3 bg-accent text-white rounded-lg hover:bg-opacity-90">
+                                    Explore Products
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addToCart(productId) {
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count and show success message
+                updateCartCount(data.cart_count);
+                showNotification('Product added to cart successfully!', 'success');
+            } else {
+                showNotification('Failed to add product to cart.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+        });
+    }
+
+    function removeFromWishlist(productId) {
+        fetch(`/wishlist/remove/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh the page to update the wishlist
+                location.reload();
+            } else {
+                showNotification('Failed to remove product from wishlist.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %} 

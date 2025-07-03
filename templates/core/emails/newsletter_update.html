@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #d4af37;
+        }
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: #1a1a1a;
+        }
+        .content {
+            padding: 30px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #d4af37;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">REY PREMIUM VOGUE</div>
+    </div>
+    
+    <div class="content">
+        <h2>{{ subject }}</h2>
+        
+        <div class="newsletter-content">
+            {{ content|safe }}
+        </div>
+        
+        <center>
+            <a href="{% url 'products:categories' %}" class="button">Shop Now</a>
+        </center>
+    </div>
+    
+    <div class="footer">
+        <p>You received this email because you are subscribed to REY PREMIUM VOGUE newsletter.</p>
+        <p>&copy; 2024 REY PREMIUM VOGUE. All rights reserved.</p>
+    </div>
+</body>
+</html> 

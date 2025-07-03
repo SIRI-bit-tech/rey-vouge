@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .order-details {
+            margin-bottom: 30px;
+        }
+        .thank-you {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Confirmation</h1>
+            <p>Thank you for shopping with REY PREMIUM VOGUE</p>
+        </div>
+
+        <div class="order-details">
+            <h2>Order #{{ order.id }}</h2>
+            <p>Your order has been received and is being processed. Our team will contact you via WhatsApp shortly to confirm your order and arrange payment.</p>
+
+            <h3>Order Items:</h3>
+            {{ order_details.items|linebreaks }}
+
+            <h3>Shipping Information:</h3>
+            {{ order_details.shipping|linebreaks }}
+
+            <h3>Order Summary:</h3>
+            {{ order_details.summary|linebreaks }}
+        </div>
+
+        <div class="thank-you">
+            <p>If you have any questions about your order, please don't hesitate to contact us.</p>
+            <p>Thank you for choosing REY PREMIUM VOGUE!</p>
+        </div>
+    </div>
+</body>
+</html> 

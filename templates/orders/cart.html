@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+    <!-- Cart Header -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-serif text-center">Shopping Cart</h1>
+        </div>
+    </section>
+
+    <!-- Cart Content -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            {% if cart.items.all %}
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Cart Items -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-lg shadow-lg">
+                            <div class="divide-y">
+                                {% for item in cart.items.all %}
+                                    <div class="p-6">
+                                        <div class="flex items-center space-x-6">
+                                            <!-- Product Image -->
+                                            <a href="{{ item.product.get_absolute_url }}" class="flex-shrink-0">
+                                                <img src="{{ item.product.images.first.image.url }}" 
+                                                     alt="{{ item.product.name }}"
+                                                     class="w-24 h-24 object-cover rounded-lg">
+                                            </a>
+
+                                            <!-- Product Info -->
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-medium">
+                                                    <a href="{{ item.product.get_absolute_url }}" 
+                                                       class="hover:text-accent">
+                                                        {{ item.product.name }}
+                                                    </a>
+                                                </h3>
+                                                <p class="text-sm text-gray-500 mt-1">
+                                                    Size: {{ item.size }} | Color: {{ item.color }}
+                                                </p>
+                                                <div class="mt-2">
+                                                    {% if item.product.is_on_sale %}
+                                                        <p class="text-accent">
+                                                            ₦{{ item.product.sale_price }}
+                                                            <span class="text-sm text-gray-500 line-through ml-2">
+                                                                ₦{{ item.product.price }}
+                                                            </span>
+                                                        </p>
+                                                    {% else %}
+                                                        <p>₦{{ item.product.price }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <!-- Quantity Controls -->
+                                            <div class="flex items-center space-x-2">
+                                                <button onclick="updateQuantity('{{ item.id }}', -1)"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-full border hover:bg-gray-100">
+                                                    -
+                                                </button>
+                                                <input type="number" value="{{ item.quantity }}"
+                                                       min="1" max="{{ item.product.stock }}"
+                                                       class="w-16 text-center border rounded-lg"
+                                                       onchange="updateQuantity('{{ item.id }}', this.value - {{ item.quantity }})">
+                                                <button onclick="updateQuantity('{{ item.id }}', 1)"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-full border hover:bg-gray-100">
+                                                    +
+                                                </button>
+                                            </div>
+
+                                            <!-- Item Total & Remove -->
+                                            <div class="text-right">
+                                                <p class="font-medium">₦{{ item.total_price }}</p>
+                                                <button onclick="removeFromCart('{{ item.id }}')"
+                                                        class="text-sm text-red-500 hover:text-red-600 mt-2">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-lg shadow-lg p-6 sticky top-6">
+                            <h2 class="text-2xl font-serif mb-6">Order Summary</h2>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>₦{{ cart.subtotal }}</span>
+                                </div>
+                                {% if cart.shipping_cost %}
+                                    <div class="flex justify-between">
+                                        <span>Shipping</span>
+                                        <span>₦{{ cart.shipping_cost }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="flex justify-between text-lg font-medium pt-4 border-t">
+                                    <span>Total</span>
+                                    <span>₦{{ cart.total }}</span>
+                                </div>
+                            </div>
+                            <a href="{% url 'orders:checkout' %}" 
+                               class="block w-full text-center bg-accent hover:bg-opacity-90 text-white px-6 py-3 rounded-lg mt-6 transition duration-300">
+                                Proceed to Checkout
+                            </a>
+                            <a href="{% url 'products:product_list' %}" 
+                               class="block w-full text-center text-accent hover:text-opacity-80 mt-4">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+                    <h2 class="text-2xl font-serif mb-4">Your cart is empty</h2>
+                    <p class="text-gray-500 mb-8">Explore our collection and find something you love.</p>
+                    <a href="{% url 'products:product_list' %}" 
+                       class="inline-block bg-accent hover:bg-opacity-90 text-white px-8 py-3 rounded-lg transition duration-300">
+                        Start Shopping
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateQuantity(itemId, change) {
+        const input = event.target.parentElement.querySelector('input');
+        const newQuantity = parseInt(input.value) + change;
+        
+        if (newQuantity < 1 || newQuantity > parseInt(input.max)) {
+            return;
+        }
+
+        fetch(`{% url 'orders:cart_update' 0 %}`.replace('0', itemId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                quantity: newQuantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showNotification('Failed to update quantity.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+        });
+    }
+
+    function removeFromCart(itemId) {
+        fetch(`{% url 'orders:cart_remove' 0 %}`.replace('0', itemId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showNotification('Failed to remove item from cart.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %} 

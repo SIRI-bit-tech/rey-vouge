@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}REY PREMIUM VOGUE - Luxury Men's Fashion{% endblock %}
+
+{% block content %}
+<!-- Hero Carousel Section -->
+<div class="relative overflow-hidden bg-gray-900">
+    <!-- Carousel container -->
+    <div id="hero-carousel" class="relative w-full">
+        <!-- Slides -->
+        <div class="carousel-slides relative h-[70vh] md:h-[80vh] lg:h-[90vh] transition-transform duration-700">
+            <!-- Slide 1 -->
+            <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-700">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30"></div>
+                <img src="{% static 'images/carousel/slide1.jpg' %}" alt="Luxury Men's Fashion" class="w-full h-full object-cover">
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4 transform transition-all duration-700 translate-y-8 opacity-0">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-serif">Welcome to REY PREMIUM VOGUE</h1>
+                    <p class="text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl">Discover Luxury Men's Fashion at Its Finest</p>
+                    <a href="{% url 'products:categories' %}" class="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 hover:scale-105 transform transition-all duration-300 shadow-lg">Shop Now</a>
+                </div>
+            </div>
+            
+            <!-- Slide 2 -->
+            <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-700">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30"></div>
+                <img src="{% static 'images/carousel/slide2.jpg' %}" alt="Premium Collection" class="w-full h-full object-cover">
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4 transform transition-all duration-700 translate-y-8 opacity-0">
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-serif">Premium Collection</h2>
+                    <p class="text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl">Elevate Your Style with Our Exclusive Range</p>
+                    <a href="{% url 'products:categories' %}" class="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 hover:scale-105 transform transition-all duration-300 shadow-lg">Explore Collection</a>
+                </div>
+            </div>
+            
+            <!-- Slide 3 -->
+            <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-700">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30"></div>
+                <img src="{% static 'images/carousel/slide3.jpg' %}" alt="New Arrivals" class="w-full h-full object-cover">
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4 transform transition-all duration-700 translate-y-8 opacity-0">
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-serif">New Arrivals</h2>
+                    <p class="text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl">Be the First to Wear Our Latest Styles</p>
+                    <a href="{% url 'products:product_list' %}?new_arrivals=true" class="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 hover:scale-105 transform transition-all duration-300 shadow-lg">View New Arrivals</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Arrows -->
+        <button class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 backdrop-blur-sm" onclick="moveSlide(-1)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 backdrop-blur-sm" onclick="moveSlide(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+        
+        <!-- Pagination Dots -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3">
+            <button class="carousel-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300 hover:scale-125" onclick="goToSlide(0)"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300 hover:scale-125" onclick="goToSlide(1)"></button>
+            <button class="carousel-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300 hover:scale-125" onclick="goToSlide(2)"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Categories -->
+<section class="py-20 md:py-24 lg:py-32">
+    <div class="container mx-auto px-4 md:px-8">
+        <h2 class="text-3xl md:text-4xl font-serif text-center mb-16 relative after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-24 after:h-1 after:bg-accent after:rounded-full pb-6">Shop by Category</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+            {% for category in categories %}
+            <a href="{% url 'products:product_list_by_category' category.slug %}" 
+               class="group relative h-80 overflow-hidden rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-2xl">
+                <div class="w-full h-full {% if not category.image %}bg-gray-200 flex items-center justify-center{% endif %}">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" 
+                             class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    {% else %}
+                        <span class="text-gray-400 text-4xl">{{ category.name|first }}</span>
+                    {% endif %}
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 group-hover:from-black/80 group-hover:to-black/30 transition-all duration-500 flex items-center justify-center">
+                    <h3 class="text-white text-2xl md:text-3xl font-serif transform transition-transform duration-500 group-hover:scale-110">{{ category.name }}</h3>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-20 md:py-24 lg:py-32 bg-gray-50">
+    <div class="container mx-auto px-4 md:px-8">
+        <h2 class="text-3xl md:text-4xl font-serif text-center mb-16 relative after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-24 after:h-1 after:bg-accent after:rounded-full pb-6">Featured Products</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+            {% for product in featured_products %}
+            <div class="bg-white rounded-xl overflow-hidden shadow-lg group transform transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                <div class="relative h-80 overflow-hidden">
+                    <div class="w-full h-full {% if not product.images.first %}bg-gray-200 flex items-center justify-center{% endif %}">
+                        {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                 class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                        {% else %}
+                            <span class="text-gray-400 text-4xl">{{ product.name|first }}</span>
+                        {% endif %}
+                    </div>
+                    {% if product.sale_price %}
+                    <span class="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg transform -rotate-12">
+                        Sale
+                    </span>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500"></div>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-lg md:text-xl font-semibold mb-3 group-hover:text-accent transition-colors duration-300">{{ product.name }}</h3>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            {% if product.sale_price %}
+                            <span class="text-red-500 font-semibold text-lg">₦{{ product.sale_price }}</span>
+                            <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                            {% else %}
+                            <span class="text-gray-900 font-semibold text-lg">₦{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ product.get_absolute_url }}" 
+                           class="text-accent hover:text-primary transition-all duration-300 transform group-hover:translate-x-2">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-16">
+            <a href="{% url 'products:product_list' %}" 
+               class="inline-block border-2 border-accent text-accent hover:bg-accent hover:text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                View All Products
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-20 md:py-24 lg:py-32">
+    <div class="container mx-auto px-4 md:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
+            <div class="text-center transform transition-all duration-500 hover:-translate-y-2">
+                <div class="bg-accent/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-shipping-fast text-4xl text-accent"></i>
+                </div>
+                <h3 class="text-xl md:text-2xl font-serif mb-4">Free Shipping</h3>
+                <p class="text-gray-600">Complimentary shipping on all orders over ₦200,000</p>
+            </div>
+            <div class="text-center transform transition-all duration-500 hover:-translate-y-2">
+                <div class="bg-accent/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-undo text-4xl text-accent"></i>
+                </div>
+                <h3 class="text-xl md:text-2xl font-serif mb-4">Easy Returns</h3>
+                <p class="text-gray-600">Hassle-free 30-day return policy</p>
+            </div>
+            <div class="text-center transform transition-all duration-500 hover:-translate-y-2">
+                <div class="bg-accent/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-headset text-4xl text-accent"></i>
+                </div>
+                <h3 class="text-xl md:text-2xl font-serif mb-4">24/7 Support</h3>
+                <p class="text-gray-600">Premium customer service excellence</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="py-20 md:py-24 lg:py-32 bg-primary text-white relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('{% static 'images/pattern.png' %}')] opacity-10"></div>
+    <div class="container mx-auto px-4 md:px-8 relative">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-serif mb-6">Join Our Newsletter</h2>
+            <p class="text-gray-300 mb-10 text-lg">Subscribe to receive updates, access to exclusive deals, and more.</p>
+            <form id="newsletter-form-home" class="max-w-md mx-auto">
+                {% csrf_token %}
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1 relative">
+                        <input type="email" name="email" id="newsletter-email-home" placeholder="Enter your email address" required
+                               class="w-full px-6 py-4 rounded-full bg-white/10 border border-white/20 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/50 transition-all duration-300 text-white placeholder-gray-400">
+                        <div id="newsletter-error-home" class="absolute left-0 -bottom-6 text-sm text-red-400 hidden"></div>
+                    </div>
+                    <button type="submit" 
+                            class="bg-accent hover:bg-accent/90 px-8 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg md:w-auto w-full relative">
+                        <span id="newsletter-button-text-home">Subscribe</span>
+                        <span id="newsletter-loading-home" class="absolute inset-0 flex items-center justify-center hidden">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    const totalSlides = slides.length;
+    let slideInterval;
+
+    function showSlide(n) {
+        // Hide all slides and reset content
+        slides.forEach(slide => {
+            slide.style.opacity = '0';
+            slide.style.zIndex = '0';
+            const content = slide.querySelector('div:last-child');
+            content.style.transform = 'translateY(2rem)';
+            content.style.opacity = '0';
+        });
+        dots.forEach(dot => {
+            dot.classList.remove('bg-white', 'scale-125');
+            dot.classList.add('bg-white/50');
+        });
+
+        // Show current slide with animation
+        currentSlide = (n + totalSlides) % totalSlides;
+        slides[currentSlide].style.opacity = '1';
+        slides[currentSlide].style.zIndex = '1';
+        
+        // Animate content after slide is visible
+        setTimeout(() => {
+            const content = slides[currentSlide].querySelector('div:last-child');
+            content.style.transform = 'translateY(0)';
+            content.style.opacity = '1';
+        }, 100);
+
+        // Update dot
+        dots[currentSlide].classList.remove('bg-white/50');
+        dots[currentSlide].classList.add('bg-white', 'scale-125');
+    }
+
+    function moveSlide(n) {
+        clearInterval(slideInterval);
+        showSlide(currentSlide + n);
+        startSlideShow();
+    }
+
+    function goToSlide(n) {
+        clearInterval(slideInterval);
+        showSlide(n);
+        startSlideShow();
+    }
+
+    function startSlideShow() {
+        slideInterval = setInterval(() => {
+            moveSlide(1);
+        }, 5000);
+    }
+
+    // Initialize carousel
+    showSlide(0);
+    startSlideShow();
+
+    // Pause slideshow when hovering over carousel
+    const carousel = document.getElementById('hero-carousel');
+    carousel.addEventListener('mouseenter', () => clearInterval(slideInterval));
+    carousel.addEventListener('mouseleave', startSlideShow);
+
+    // Add scroll reveal animation
+    document.addEventListener('DOMContentLoaded', function() {
+        const sections = document.querySelectorAll('section');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        sections.forEach(section => {
+            section.style.opacity = '0';
+            observer.observe(section);
+        });
+    });
+
+    document.getElementById('newsletter-form-home').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const email = document.getElementById('newsletter-email-home').value;
+        const buttonText = document.getElementById('newsletter-button-text-home');
+        const loading = document.getElementById('newsletter-loading-home');
+        const errorDiv = document.getElementById('newsletter-error-home');
+        
+        // Reset error message
+        errorDiv.textContent = '';
+        errorDiv.classList.add('hidden');
+        
+        // Show loading state
+        buttonText.classList.add('invisible');
+        loading.classList.remove('hidden');
+        form.querySelector('button').disabled = true;
+        
+        fetch('{% url "core:newsletter_subscribe" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `email=${encodeURIComponent(email)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                form.reset();
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('hidden');
+        })
+        .finally(() => {
+            // Reset button state
+            buttonText.classList.remove('invisible');
+            loading.classList.add('hidden');
+            form.querySelector('button').disabled = false;
+        });
+    });
+</script>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 1s ease forwards;
+    }
+</style>
+{% endblock %} 

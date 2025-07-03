@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+    <!-- Checkout Header -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-serif text-center">Checkout</h1>
+        </div>
+    </section>
+
+    <!-- Checkout Steps -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <!-- Progress Steps -->
+            <div class="max-w-4xl mx-auto mb-12">
+                <div class="flex justify-between">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <div class="w-10 h-10 mx-auto bg-accent rounded-full text-lg text-white flex items-center justify-center">
+                                <span class="text-white font-bold">1</span>
+                            </div>
+                            <div class="text-center text-sm mt-2">Shipping</div>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="relative">
+                            <div class="absolute left-0 top-5 -ml-px w-full h-0.5 bg-gray-300"></div>
+                            <div class="w-10 h-10 mx-auto {% if step == 2 %}bg-accent{% else %}bg-gray-300{% endif %} rounded-full text-lg text-white flex items-center justify-center relative z-10">
+                                <span class="text-white font-bold">2</span>
+                            </div>
+                            <div class="text-center text-sm mt-2">Review</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Checkout Form -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <!-- Step 1: Shipping Information -->
+                        {% if step == 1 %}
+                            <form method="post" action="{% url 'orders:checkout_shipping' %}" class="space-y-6">
+                                {% csrf_token %}
+                                <h2 class="text-2xl font-serif mb-6">Shipping Information</h2>
+                                
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">First Name</label>
+                                        <input type="text" name="first_name" value="{{ user.first_name }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                                        <input type="text" name="last_name" value="{{ user.last_name }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                                    <input type="email" name="email" value="{{ user.email }}" required
+                                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="tel" name="phone_number" value="{{ user.phone_number }}" required
+                                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Address</label>
+                                    <textarea name="address" rows="3" required
+                                              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">{{ user.address }}</textarea>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">City</label>
+                                        <input type="text" name="city" value="{{ user.city }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">State</label>
+                                        <input type="text" name="state" value="{{ user.state }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Country</label>
+                                        <input type="text" name="country" value="{{ user.country }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Postal Code</label>
+                                        <input type="text" name="postal_code" value="{{ user.postal_code }}" required
+                                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-accent focus:ring-accent">
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end pt-6">
+                                    <button type="submit"
+                                            class="bg-accent hover:bg-opacity-90 text-white px-8 py-3 rounded-lg transition duration-300">
+                                        Continue to Review
+                                    </button>
+                                </div>
+                            </form>
+
+                        <!-- Step 2: Order Review -->
+                        {% else %}
+                            <div class="space-y-6">
+                                <h2 class="text-2xl font-serif mb-6">Review Your Order</h2>
+
+                                <!-- Shipping Information Review -->
+                                <div>
+                                    <h3 class="font-medium mb-2">Shipping Information</h3>
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <p>{{ shipping.first_name }} {{ shipping.last_name }}</p>
+                                        <p>{{ shipping.address }}</p>
+                                        <p>{{ shipping.city }}, {{ shipping.state }} {{ shipping.postal_code }}</p>
+                                        <p>{{ shipping.country }}</p>
+                                        <p>{{ shipping.phone_number }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Order Items Review -->
+                                <div>
+                                    <h3 class="font-medium mb-2">Order Items</h3>
+                                    <div class="divide-y">
+                                        {% for item in cart.items.all %}
+                                            <div class="py-4 flex items-center space-x-4">
+                                                <img src="{{ item.product.images.first.image.url }}" 
+                                                     alt="{{ item.product.name }}"
+                                                     class="w-16 h-16 object-cover rounded-lg">
+                                                <div class="flex-1">
+                                                    <h4 class="font-medium">{{ item.product.name }}</h4>
+                                                    <p class="text-sm text-gray-500">
+                                                        Size: {{ item.size }} | Color: {{ item.color }}
+                                                    </p>
+                                                    <p class="text-sm">Quantity: {{ item.quantity }}</p>
+                                                </div>
+                                                <p class="font-medium">₦{{ item.total_price }}</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between pt-6">
+                                    <a href="{% url 'orders:checkout' %}" 
+                                       class="text-accent hover:text-opacity-80">
+                                        Back to Shipping
+                                    </a>
+                                    <form action="{% url 'orders:place_order' %}" method="post" id="place-order-form">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="bg-accent hover:bg-opacity-90 text-white px-8 py-3 rounded-lg transition duration-300">
+                                            Pay with PayStack
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-lg p-6 sticky top-6">
+                        <h2 class="text-2xl font-serif mb-6">Order Summary</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>₦{{ cart.subtotal }}</span>
+                            </div>
+                            {% if cart.shipping_cost %}
+                                <div class="flex justify-between">
+                                    <span>Shipping</span>
+                                    <span>₦{{ cart.shipping_cost }}</span>
+                                </div>
+                            {% endif %}
+                            {% if cart.tax_amount %}
+                                <div class="flex justify-between">
+                                    <span>Tax</span>
+                                    <span>₦{{ cart.tax_amount }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="flex justify-between text-lg font-medium pt-4 border-t">
+                                <span>Total</span>
+                                <span>₦{{ cart.total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PayStack Integration Script -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        document.getElementById('place-order-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            fetch("{% url 'orders:place_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let handler = PaystackPop.setup({
+                        key: '{{ paystack_public_key }}',
+                        email: '{{ shipping.email }}',
+                        amount: {{ cart.total|floatformat:2 }} * 100, // Convert to kobo
+                        currency: 'NGN',
+                        ref: data.payment_reference,
+                        callback: function(response) {
+                            // Redirect to confirmation page after successful payment
+                            window.location.href = "{% url 'orders:order_confirmation' order_number='" + data.order_number + "' %}";
+                        },
+                        onClose: function() {
+                            // Handle payment window close
+                            alert('Payment window closed. Please try again.');
+                        }
+                    });
+                    handler.openIframe();
+                } else {
+                    alert(data.error || 'An error occurred. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    </script>
+{% endblock %} 

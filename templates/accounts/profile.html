@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Profile Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="p-6">
+                <div class="flex items-center">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="Profile" class="h-24 w-24 rounded-full object-cover">
+                    {% else %}
+                        <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-2xl text-gray-500">{{ user.get_full_name|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="ml-6">
+                        <h1 class="text-2xl font-bold text-gray-900">{{ user.get_full_name }}</h1>
+                        <p class="text-gray-600">{{ user.email }}</p>
+                        {% if user.is_premium_active %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 mt-2">
+                                Premium Member
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Sidebar Navigation -->
+            <div class="col-span-1">
+                <div class="bg-white shadow rounded-lg">
+                    <nav class="space-y-1">
+                        <a href="#profile" class="block px-4 py-2 text-gray-900 hover:bg-gray-50 border-l-4 border-indigo-500">Profile Overview</a>
+                        <a href="{% url 'accounts:order_history' %}" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">Order History</a>
+                        <a href="{% url 'accounts:wishlist' %}" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">Wishlist</a>
+                        <a href="{% url 'accounts:profile_edit' %}" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">Edit Profile</a>
+                        <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">Change Password</a>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">Logout</button>
+                        </form>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="col-span-1 md:col-span-3">
+                <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+                    <!-- Personal Information -->
+                    <div class="p-6">
+                        <h2 class="text-lg font-medium text-gray-900">Personal Information</h2>
+                        <dl class="mt-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">First Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.first_name|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Last Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.last_name|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.email }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.phone_number|default:"Not set" }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Address Information -->
+                    <div class="p-6">
+                        <h2 class="text-lg font-medium text-gray-900">Address Information</h2>
+                        <dl class="mt-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <dt class="text-sm font-medium text-gray-500">Address</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.address|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">City</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.city|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">State</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.state|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Country</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.country|default:"Not set" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Postal Code</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.postal_code|default:"Not set" }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Preferences -->
+                    <div class="p-6">
+                        <h2 class="text-lg font-medium text-gray-900">Preferences</h2>
+                        <form method="post" action="{% url 'accounts:update_preferences' %}" class="mt-4 space-y-4">
+                            {% csrf_token %}
+                            <div class="flex items-center">
+                                <input type="checkbox" name="email_notifications" id="email_notifications" 
+                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                       {% if user.email_notifications %}checked{% endif %}>
+                                <label for="email_notifications" class="ml-2 text-sm text-gray-900">
+                                    Receive email notifications
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="newsletter_subscription" id="newsletter_subscription" 
+                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                       {% if user.newsletter_subscription %}checked{% endif %}>
+                                <label for="newsletter_subscription" class="ml-2 text-sm text-gray-900">
+                                    Subscribe to newsletter
+                                </label>
+                            </div>
+                            <button type="submit" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Update Preferences
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    {% if recent_orders %}
+                    <div class="p-6">
+                        <h2 class="text-lg font-medium text-gray-900">Recent Orders</h2>
+                        <div class="mt-4 space-y-4">
+                            {% for order in recent_orders %}
+                            <div class="border rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Order #{{ order.id }}</p>
+                                        <p class="text-sm text-gray-500">{{ order.created_at|date:"F j, Y" }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium text-gray-900">₦{{ order.total_amount }}</p>
+                                        <p class="text-sm text-gray-500">{{ order.status }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <a href="{% url 'accounts:order_history' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                View All Orders
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
