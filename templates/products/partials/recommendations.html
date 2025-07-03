@@ -1,0 +1,138 @@
+{% if similar_products or frequently_bought or viewed_together %}
+<section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        {% if similar_products %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-serif mb-6">Similar Products</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in similar_products %}
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-300">
+                    <a href="{{ product.get_absolute_url }}" class="block relative">
+                        {% if product.images.exists %}
+                        <img src="{{ product.images.first.image.url }}" 
+                             alt="{{ product.name }}"
+                             class="w-full h-64 object-cover">
+                        {% endif %}
+                        {% if product.is_on_sale %}
+                        <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
+                            -{{ product.discount_percentage }}%
+                        </span>
+                        {% endif %}
+                    </a>
+                    <div class="p-4">
+                        <h3 class="text-lg font-medium mb-2">
+                            <a href="{{ product.get_absolute_url }}" class="hover:text-accent">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                {% if product.sale_price %}
+                                <span class="text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                                <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                                {% else %}
+                                <span class="text-gray-900 font-semibold">₦{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="toggleWishlist({{ product.id }})"
+                                        class="text-gray-400 hover:text-accent transition duration-300">
+                                    <i class="{% if product in user.wishlist.products.all %}fas text-accent{% else %}far{% endif %} fa-heart"></i>
+                                </button>
+                                <button onclick="addToCart({{ product.id }})"
+                                        class="text-gray-400 hover:text-accent transition duration-300">
+                                    <i class="fas fa-shopping-bag"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if frequently_bought %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-serif mb-6">Frequently Bought Together</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {% for product in frequently_bought %}
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-300">
+                    <div class="flex items-center p-4">
+                        <a href="{{ product.get_absolute_url }}" class="block w-24 h-24 flex-shrink-0">
+                            {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" 
+                                 alt="{{ product.name }}"
+                                 class="w-full h-full object-cover rounded-lg">
+                            {% endif %}
+                        </a>
+                        <div class="ml-4 flex-grow">
+                            <h3 class="text-lg font-medium mb-2">
+                                <a href="{{ product.get_absolute_url }}" class="hover:text-accent">
+                                    {{ product.name }}
+                                </a>
+                            </h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    {% if product.sale_price %}
+                                    <span class="text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                                    <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                                    {% else %}
+                                    <span class="text-gray-900 font-semibold">₦{{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <button onclick="addToCart({{ product.id }})"
+                                        class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-300">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if viewed_together %}
+        <div>
+            <h2 class="text-2xl font-serif mb-6">Customers Also Viewed</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in viewed_together %}
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-300">
+                    <a href="{{ product.get_absolute_url }}" class="block relative">
+                        {% if product.images.exists %}
+                        <img src="{{ product.images.first.image.url }}" 
+                             alt="{{ product.name }}"
+                             class="w-full h-48 object-cover">
+                        {% endif %}
+                    </a>
+                    <div class="p-4">
+                        <h3 class="text-lg font-medium mb-2">
+                            <a href="{{ product.get_absolute_url }}" class="hover:text-accent">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                {% if product.sale_price %}
+                                <span class="text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                                <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                                {% else %}
+                                <span class="text-gray-900 font-semibold">₦{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                            <button onclick="addToCart({{ product.id }})"
+                                    class="text-gray-400 hover:text-accent transition duration-300">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %} 

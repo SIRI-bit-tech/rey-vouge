@@ -1,15 +1,50 @@
 from django.db import models
 from django.conf import settings
 from products.models import Product
+from django.urls import reverse
+import uuid
+import string
+import random
+import time
+
+def generate_unique_share_id():
+    """Generate a unique share ID combining timestamp and random characters"""
+    timestamp = hex(int(time.time()))[2:]  # Remove '0x' prefix
+    random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    return f"{timestamp}-{random_chars}"
 
 class Wishlist(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='wishlist', on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name='wishlists')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    share_id = models.CharField(max_length=50, blank=True, null=True)  # Temporarily remove unique=True
+    is_public = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Wishlist for {self.user.email}"
+        
+    def save(self, *args, **kwargs):
+        if not self.share_id:
+            # Generate a unique share_id
+            while True:
+                share_id = generate_unique_share_id()
+                if not Wishlist.objects.filter(share_id=share_id).exists():
+                    self.share_id = share_id
+                    break
+        super().save(*args, **kwargs)
+        
+    def get_share_url(self):
+        """Get the public sharing URL for this wishlist"""
+        if not self.is_public:
+            return None
+        return reverse('accounts:shared_wishlist', kwargs={'share_id': self.share_id})
+        
+    def toggle_privacy(self):
+        """Toggle the wishlist's privacy setting"""
+        self.is_public = not self.is_public
+        self.save()
+        return self.is_public
 
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
@@ -83,3 +118,19 @@ class StoreLocation(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.city}"
+
+class ProductView(models.Model):
+    """Track product views for recommendations"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    session_id = models.CharField(max_length=40)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['session_id']),
+            models.Index(fields=['product', 'timestamp']),
+        ]
+        
+    def __str__(self):
+        return f"View of {self.product.name} by {'User' if self.user else 'Anonymous'}"

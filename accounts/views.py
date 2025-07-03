@@ -27,10 +27,9 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.conf import settings
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from products.models import Product
 from core.models import Wishlist
-from django.views.decorators.http import require_GET
 
 User = get_user_model()
 
@@ -161,6 +160,39 @@ def get_wishlist_count(request):
         count = request.user.wishlist.products.count() if hasattr(request.user, 'wishlist') else 0
         return JsonResponse({'success': True, 'wishlist_count': count})
     return JsonResponse({'success': False, 'message': 'User not authenticated'}, status=401)
+
+@login_required
+def toggle_wishlist_privacy(request):
+    """Toggle the privacy setting of a user's wishlist"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
+        
+    try:
+        wishlist = request.user.wishlist
+        is_public = wishlist.toggle_privacy()
+        
+        return JsonResponse({
+            'success': True,
+            'is_public': is_public
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
+
+def shared_wishlist(request, share_id):
+    """View a shared wishlist"""
+    wishlist = get_object_or_404(Wishlist, share_id=share_id)
+    
+    if not wishlist.is_public and request.user != wishlist.user:
+        return render(request, '404.html', status=404)
+    
+    context = {
+        'wishlist': wishlist,
+        'is_owner': request.user == wishlist.user
+    }
+    return render(request, 'accounts/shared_wishlist.html', context)
 
 # API Views
 class ProfileAPI(APIView):

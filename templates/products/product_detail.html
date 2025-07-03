@@ -349,6 +349,9 @@
     </div>
 </div>
 
+{# Include Product Recommendations #}
+{% include "products/partials/recommendations.html" with similar_products=product.get_similar_products frequently_bought=product.get_frequently_bought_together viewed_together=product.get_viewed_together %}
+
 {% endblock %}
 
 {% block extra_js %}

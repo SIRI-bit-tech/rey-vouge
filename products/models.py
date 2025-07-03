@@ -5,6 +5,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
 import uuid
+from django.db.models import Q
+from decimal import Decimal
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -224,6 +226,79 @@ class Product(models.Model):
     @property
     def color_list(self):
         return [color.strip() for color in self.colors.split(',')] if self.colors else []
+
+    def get_similar_products(self, limit=4):
+        """Get similar products based on category and attributes"""
+        similar_products = Product.objects.filter(
+            category=self.category,
+            is_active=True
+        ).exclude(id=self.id)
+
+        # Filter by similar price range (±20%)
+        min_price = self.price * Decimal('0.8')
+        max_price = self.price * Decimal('1.2')
+        similar_products = similar_products.filter(price__range=(min_price, max_price))
+
+        # Prioritize products with similar attributes
+        if self.colors:
+            color_query = Q()
+            for color in self.color_list:
+                color_query |= Q(colors__icontains=color)
+            similar_products = similar_products.filter(color_query)
+
+        if self.available_sizes:
+            size_query = Q()
+            for size in self.size_list:
+                size_query |= Q(available_sizes__icontains=size)
+            similar_products = similar_products.filter(size_query)
+
+        return similar_products[:limit]
+
+    def get_frequently_bought_together(self, limit=3):
+        """Get products frequently bought together"""
+        from orders.models import OrderItem
+        
+        # Get orders containing this product
+        orders_with_this_product = OrderItem.objects.filter(
+            product=self
+        ).values_list('order', flat=True)
+        
+        # Get other products from those orders
+        frequently_bought = OrderItem.objects.filter(
+            order__in=orders_with_this_product
+        ).exclude(
+            product=self
+        ).values_list(
+            'product', flat=True
+        ).annotate(
+            count=models.Count('product')
+        ).order_by('-count')
+        
+        product_ids = [item[0] for item in frequently_bought[:limit]]
+        return Product.objects.filter(id__in=product_ids, is_active=True)
+
+    def get_viewed_together(self, limit=4):
+        """Get products that are often viewed together"""
+        from core.models import ProductView
+        
+        # Get sessions that viewed this product
+        sessions_with_this_product = ProductView.objects.filter(
+            product=self
+        ).values_list('session_id', flat=True)
+        
+        # Get other products viewed in those sessions
+        viewed_together = ProductView.objects.filter(
+            session_id__in=sessions_with_this_product
+        ).exclude(
+            product=self
+        ).values_list(
+            'product', flat=True
+        ).annotate(
+            count=models.Count('product')
+        ).order_by('-count')
+        
+        product_ids = [item[0] for item in viewed_together[:limit]]
+        return Product.objects.filter(id__in=product_ids, is_active=True)
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)

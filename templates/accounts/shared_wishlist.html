@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ wishlist.user.get_full_name }}'s Wishlist - REY PREMIUM VOGUE{% endblock %}
+
+{% block content %}
+<!-- Wishlist Header -->
+<section class="bg-gray-100 py-12">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-serif text-center">{{ wishlist.user.get_full_name }}'s Wishlist</h1>
+        {% if is_owner %}
+        <div class="mt-4 flex justify-center">
+            <button onclick="toggleWishlistPrivacy()"
+                    class="inline-flex items-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-opacity-90 transition duration-300">
+                <i class="fas {% if wishlist.is_public %}fa-lock{% else %}fa-lock-open{% endif %} mr-2"></i>
+                {{ wishlist.is_public|yesno:"Make Private,Make Public" }}
+            </button>
+            {% if wishlist.is_public %}
+            <button onclick="copyShareLink()"
+                    class="ml-4 inline-flex items-center px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition duration-300">
+                <i class="fas fa-share-alt mr-2"></i>
+                Share
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Wishlist Content -->
+<section class="py-16">
+    <div class="container mx-auto px-4">
+        {% if wishlist.products.exists %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for product in wishlist.products.all %}
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-300">
+                <a href="{{ product.get_absolute_url }}" class="block relative">
+                    {% if product.images.exists %}
+                    <img src="{{ product.images.first.image.url }}" 
+                         alt="{{ product.name }}"
+                         class="w-full h-64 object-cover">
+                    {% endif %}
+                    {% if product.is_on_sale %}
+                    <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
+                        -{{ product.discount_percentage }}%
+                    </span>
+                    {% endif %}
+                </a>
+                <div class="p-6">
+                    <h3 class="text-lg font-medium mb-2">
+                        <a href="{{ product.get_absolute_url }}" class="hover:text-accent">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            {% if product.sale_price %}
+                            <span class="text-red-500 font-semibold">₦{{ product.sale_price }}</span>
+                            <span class="text-gray-400 line-through ml-2">₦{{ product.price }}</span>
+                            {% else %}
+                            <span class="text-gray-900 font-semibold">₦{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        {% if product.stock > 0 %}
+                        <span class="text-green-500 text-sm">In Stock</span>
+                        {% else %}
+                        <span class="text-red-500 text-sm">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex space-x-2">
+                        {% if user.is_authenticated %}
+                        <button onclick="addToCart({{ product.id }})"
+                                class="flex-1 bg-accent text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-300 {% if not product.stock %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if not product.stock %}disabled{% endif %}>
+                            Add to Cart
+                        </button>
+                        {% if not is_owner %}
+                        <button onclick="toggleWishlist({{ product.id }})"
+                                class="px-4 py-2 border-2 rounded-lg hover:border-accent transition duration-300">
+                            <i class="{% if product in user.wishlist.products.all %}fas text-accent{% else %}far{% endif %} fa-heart"></i>
+                        </button>
+                        {% endif %}
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+                           class="flex-1 bg-accent text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-300 text-center">
+                            Sign in to Purchase
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500 text-lg mb-6">This wishlist is empty.</p>
+            <a href="{% url 'products:product_list' %}" 
+               class="inline-block px-6 py-3 bg-accent text-white rounded-lg hover:bg-opacity-90 transition duration-300">
+                Explore Products
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleWishlistPrivacy() {
+    fetch('{% url "accounts:toggle_wishlist_privacy" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            showNotification(data.message || 'Failed to update privacy settings', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    });
+}
+
+function copyShareLink() {
+    const shareUrl = '{{ request.build_absolute_uri }}';
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        showNotification('Share link copied to clipboard!', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy link. Please try again.', 'error');
+    });
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transform translate-x-full transition-transform duration-300 ${type === 'error' ? 'bg-red-500' : 'bg-accent'}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %} 

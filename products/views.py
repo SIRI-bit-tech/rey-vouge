@@ -118,11 +118,17 @@ def product_list(request, category_slug=None):
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    related_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
+    
+    # Get recommendations
+    similar_products = product.get_similar_products()
+    frequently_bought = product.get_frequently_bought_together()
+    viewed_together = product.get_viewed_together()
     
     context = {
         'product': product,
-        'related_products': related_products,
+        'similar_products': similar_products,
+        'frequently_bought': frequently_bought,
+        'viewed_together': viewed_together,
     }
     return render(request, 'products/product_detail.html', context)
 

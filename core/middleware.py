@@ -8,6 +8,8 @@ from django.core.cache import cache
 from django.utils.deprecation import MiddlewareMixin
 from bs4 import BeautifulSoup
 import htmlmin
+from django.urls import resolve
+from .models import ProductView
 
 class PageSpeedMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
@@ -120,4 +122,39 @@ class ImageOptimizationMiddleware:
             'image/png' if img.format == 'PNG' else 'image/jpeg',
             sys.getsizeof(output),
             None
-        ) 
+        )
+
+class ProductViewMiddleware(MiddlewareMixin):
+    """Middleware to track product views for recommendations"""
+    
+    def process_request(self, request):
+        if not request.path.startswith('/products/'):
+            return None
+            
+        try:
+            # Check if this is a product detail page
+            resolved = resolve(request.path)
+            if resolved.url_name != 'product_detail':
+                return None
+                
+            # Get product from view kwargs
+            product_slug = resolved.kwargs.get('slug')
+            if not product_slug:
+                return None
+                
+            # Get or create session ID
+            if not request.session.session_key:
+                request.session.save()
+                
+            # Record the view
+            ProductView.objects.create(
+                product_id=product_slug,
+                user=request.user if request.user.is_authenticated else None,
+                session_id=request.session.session_key
+            )
+            
+        except Exception:
+            # Log error but don't interrupt request
+            pass
+            
+        return None 

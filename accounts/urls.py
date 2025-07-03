@@ -15,8 +15,10 @@ urlpatterns = [
     path('profile/change-password/', views.change_password, name='change_password'),
     path('profile/orders/', views.order_history, name='order_history'),
     path('profile/wishlist/', views.wishlist, name='wishlist'),
+    path('wishlist/toggle-privacy/', views.toggle_wishlist_privacy, name='toggle_wishlist_privacy'),
+    path('wishlist/shared/<str:share_id>/', views.shared_wishlist, name='shared_wishlist'),
     path('wishlist/add/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
-    path('wishlist/count/', views.get_wishlist_count, name='wishlist_count'),
+    path('wishlist/count/', views.get_wishlist_count, name='get_wishlist_count'),
     
     # Password Reset URLs
     path('password-reset/', 
