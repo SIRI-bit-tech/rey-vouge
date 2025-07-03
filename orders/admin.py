@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderItem, Cart, CartItem
+from .models import Order, OrderItem, Cart, CartItem, Payment
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -36,11 +36,20 @@ class OrderAdmin(admin.ModelAdmin):
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
-    raw_id_fields = ['product']
+    readonly_fields = ('get_total_price_display',)
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_at', 'updated_at', 'total')
-    search_fields = ('user__email',)
+    list_display = ('id', 'user', 'modified_at', 'get_total_display', 'is_active', 'reminder_count')
+    list_filter = ('is_active', 'created_at', 'modified_at')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name')
+    readonly_fields = ('created_at', 'modified_at', 'get_total_display')
     inlines = [CartItemInline]
-    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'order', 'amount', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('reference', 'order__order_number')
+    readonly_fields = ('reference', 'created_at', 'modified_at')

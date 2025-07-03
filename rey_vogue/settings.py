@@ -203,14 +203,26 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # Site ID
 SITE_ID = 1
 
-# Email Settings
+# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'siritech001@gmail.com')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 30  # timeout in seconds
+
+# Site settings
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'localhost:8000')
+SITE_NAME = os.getenv('SITE_NAME', 'REY PREMIUM VOGUE')
+
+# For development/testing, use console backend
+if DEBUG:
+    # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    pass
 
 # WhatsApp Configuration
 ADMIN_WHATSAPP = os.getenv('ADMIN_WHATSAPP')
@@ -230,8 +242,19 @@ SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Changed to none for now
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Changed to mandatory
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_SUBJECT_PREFIX = 'Rey Premium Vogue - '
+
+# Email sending task settings
+EMAIL_TASK_RETRY_DELAY = 180  # 3 minutes
+EMAIL_TASK_MAX_RETRIES = 3
+
+# Cart abandonment settings
+CART_ABANDONMENT_DELAY = 24  # hours
+CART_ABANDONMENT_REMINDER_LIMIT = 2  # maximum number of reminders
 
 # Performance Optimization Settings
 if DEBUG:
@@ -370,3 +393,5 @@ CLOUDINARY_STORAGE = {
 
 # Media files storage
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+

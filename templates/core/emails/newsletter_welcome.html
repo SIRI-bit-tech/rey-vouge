@@ -63,12 +63,13 @@
         
         <p>Start exploring our latest collection:</p>
         <center>
-            <a href="{% url 'products:categories' %}" class="button">Shop Now</a>
+            <a href="{{ site_url }}/products/categories/" class="button">Shop Now</a>
         </center>
     </div>
     
     <div class="footer">
         <p>This email was sent to {{ email }}. You received this email because you subscribed to REY PREMIUM VOGUE newsletter.</p>
+        <p>To unsubscribe, <a href="{{ unsubscribe_url }}">click here</a>.</p>
         <p>&copy; 2024 REY PREMIUM VOGUE. All rights reserved.</p>
     </div>
 </body>

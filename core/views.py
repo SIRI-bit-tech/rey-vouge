@@ -12,6 +12,7 @@ import os
 from django.conf import settings
 from rest_framework.views import APIView
 from products.models import Category, Product
+from .utils import send_email
 from .models import (
     Wishlist, NewsletterSubscriber, ContactMessage,
     Promotion, StoreLocation
@@ -82,7 +83,7 @@ def contact(request):
                 fail_silently=False
             )
         except Exception as e:
-            print(f"Failed to send email: {str(e)}")
+            logger.error(f"Failed to send contact email: {str(e)}")
         
         return JsonResponse({
             'success': True,
@@ -148,25 +149,26 @@ def newsletter_subscribe(request):
                     subscriber.is_active = True
                     subscriber.save()
                     
-                    # Send reactivation email
-                    current_site = get_current_site(request)
-                    site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
-                    
-                    context = {
-                        'email': email,
-                        'site_url': site_url,
-                        'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
-                    }
-                    
-                    html_message = render_to_string('core/emails/newsletter_reactivation.html', context)
-                    send_mail(
-                        subject="Welcome Back to REY PREMIUM VOGUE Newsletter!",
-                        message='',
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[email],
-                        html_message=html_message,
-                        fail_silently=False
-                    )
+                    try:
+                        # Send reactivation email
+                        site_url = f"https://{settings.SITE_DOMAIN}" if request.is_secure() else f"http://{settings.SITE_DOMAIN}"
+                        
+                        context = {
+                            'email': email,
+                            'site_url': site_url,
+                            'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
+                        }
+                        
+                        send_email(
+                            subject="Welcome Back to REY PREMIUM VOGUE Newsletter!",
+                            template_name='core/emails/newsletter_reactivation.html',
+                            to_email=email,
+                            to_name=email.split('@')[0],
+                            context=context
+                        )
+                    except Exception as email_error:
+                        logger.error(f"Failed to send reactivation email: {str(email_error)}")
+                        # Continue with subscription even if email fails
                     
                     return JsonResponse({
                         'success': True,
@@ -179,37 +181,44 @@ def newsletter_subscribe(request):
                     })
             else:
                 # Create new subscription
-                NewsletterSubscriber.objects.create(email=email)
+                subscriber = NewsletterSubscriber.objects.create(email=email)
                 
-                # Send welcome email
-                current_site = get_current_site(request)
-                site_url = f"https://{current_site.domain}" if request.is_secure() else f"http://{current_site.domain}"
-                
-                context = {
-                    'email': email,
-                    'site_url': site_url,
-                    'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
-                }
-                
-                html_message = render_to_string('core/emails/newsletter_welcome.html', context)
-                send_mail(
-                    subject="Welcome to REY PREMIUM VOGUE Newsletter!",
-                    message='',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    html_message=html_message,
-                    fail_silently=False
-                )
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Thank you for subscribing to our newsletter!'
-                })
+                try:
+                    # Send welcome email
+                    site_url = f"https://{settings.SITE_DOMAIN}" if request.is_secure() else f"http://{settings.SITE_DOMAIN}"
+                    
+                    context = {
+                        'email': email,
+                        'site_url': site_url,
+                        'unsubscribe_url': f"{site_url}/newsletter/unsubscribe/"
+                    }
+                    
+                    send_email(
+                        subject="Welcome to REY PREMIUM VOGUE Newsletter!",
+                        template_name='core/emails/newsletter_welcome.html',
+                        to_email=email,
+                        to_name=email.split('@')[0],
+                        context=context
+                    )
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Thank you for subscribing to our newsletter!'
+                    })
+                    
+                except Exception as email_error:
+                    logger.error(f"Failed to send welcome email: {str(email_error)}")
+                    # Delete the subscription if email fails
+                    subscriber.delete()
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Failed to send welcome email. Please try again later.'
+                    }, status=500)
                 
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'message': 'An error occurred. Please try again.'
+                'message': 'An error occurred. Please try again later.'
             }, status=500)
     
     return JsonResponse({
@@ -279,7 +288,7 @@ def send_newsletter(request):
                     successful_sends += len(recipient_list)
                 except Exception as e:
                     failed_sends += len(recipient_list)
-                    print(f"Failed to send newsletter batch: {str(e)}")
+                    logger.error(f"Failed to send newsletter batch: {str(e)}")
             
             message = f"Newsletter sent to {successful_sends} subscribers successfully."
             if failed_sends > 0:

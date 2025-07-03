@@ -1,0 +1,92 @@
+{% extends "base_email.html" %}
+
+{% block email_title %}Order Shipping Update{% endblock %}
+
+{% block email_content %}
+<tr>
+    <td class="content-cell">
+        <div class="f-fallback">
+            <h1>Shipping Update</h1>
+            <p>Hi {{ order.user.get_full_name }},</p>
+            
+            <p>Your order #{{ order.order_number }} has been {{ status_display }}.</p>
+            
+            {% if tracking_number %}
+            <p>Your tracking number is: <strong>{{ tracking_number }}</strong></p>
+            
+            <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td align="center">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{ tracking_url }}" class="f-fallback button button--green" target="_blank">
+                                        Track Your Package
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            {% endif %}
+            
+            <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="attributes_content">
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td class="attributes_item">
+                                    <span class="f-fallback">
+                                        <strong>Order Status:</strong> {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="attributes_item">
+                                    <span class="f-fallback">
+                                        <strong>Estimated Delivery:</strong> {{ estimated_delivery|date:"F j, Y" }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <table class="purchase" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>
+                        <h3>Shipping Address</h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <table class="purchase_content" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="purchase_item">
+                                    <span class="f-fallback">
+                                        {{ order.shipping_address.get_full_name }}<br>
+                                        {{ order.shipping_address.street_address }}<br>
+                                        {% if order.shipping_address.street_address2 %}
+                                            {{ order.shipping_address.street_address2 }}<br>
+                                        {% endif %}
+                                        {{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}<br>
+                                        {{ order.shipping_address.country }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <p>If you have any questions about your order, please don't hesitate to contact our customer service team.</p>
+            
+            <p>Thanks for shopping with Rey Premium Vogue!</p>
+            
+            <p>Best regards,<br>The Rey Premium Vogue Team</p>
+        </div>
+    </td>
+</tr>
+{% endblock %} 

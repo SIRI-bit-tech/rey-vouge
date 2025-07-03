@@ -1,0 +1,56 @@
+{% extends "base_email.html" %}
+
+{% block email_title %}Verify Your Email Address{% endblock %}
+
+{% block email_content %}
+<tr>
+    <td class="content-cell">
+        <div class="f-fallback">
+            <h1>Welcome to Rey Premium Vogue!</h1>
+            <p>Thanks for signing up! We're excited to have you as a member of our fashion community. To complete your registration, please verify your email address by clicking the button below:</p>
+            
+            <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td align="center">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{ activate_url }}" class="f-fallback button button--green" target="_blank">
+                                        Verify Email Address
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <p>For security, this link will expire in {{ expiration_days }} days. After that, you'll need to request a new verification link.</p>
+            
+            <p>If you did not create an account with Rey Premium Vogue, you can safely ignore this email.</p>
+            
+            <p>If you're having trouble clicking the button, copy and paste the URL below into your web browser:</p>
+            <p class="sub">{{ activate_url }}</p>
+            
+            <p>Thanks,
+                <br>The Rey Premium Vogue Team</p>
+            
+            <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="attributes_content">
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td class="attributes_item">
+                                    <span class="f-fallback">
+                                        <strong>Need Help?</strong> Contact our support team at support@reyvogue.com
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </td>
+</tr>
+{% endblock %} 

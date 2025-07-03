@@ -1,0 +1,106 @@
+{% extends "base_email.html" %}
+
+{% block email_title %}Complete Your Purchase{% endblock %}
+
+{% block email_content %}
+<tr>
+    <td class="content-cell">
+        <div class="f-fallback">
+            <h1>Your Cart is Waiting</h1>
+            <p>Hi {{ user.get_full_name }},</p>
+            
+            <p>We noticed you left some great items in your shopping cart. Don't miss out on these fantastic pieces from our collection!</p>
+            
+            <table class="purchase" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>
+                        <h3>Cart Items</h3>
+                    </td>
+                    <td class="align-right">
+                        <h3 class="purchase_heading">Price</h3>
+                    </td>
+                </tr>
+                {% for item in cart_items %}
+                <tr>
+                    <td colspan="2">
+                        <table class="purchase_content" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="purchase_item">
+                                    <span class="f-fallback">
+                                        {{ item.product.name }} ({{ item.size }})
+                                        {% if item.color %}
+                                            - {{ item.color }}
+                                        {% endif %}
+                                        x {{ item.quantity }}
+                                    </span>
+                                </td>
+                                <td class="align-right" width="20%">
+                                    <span class="f-fallback">
+                                        {{ item.get_total_price_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                {% endfor %}
+                
+                <tr>
+                    <td colspan="2">
+                        <table class="purchase_content" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="purchase_footer" width="80%">
+                                    <span class="f-fallback purchase_total purchase_total--label">Total</span>
+                                </td>
+                                <td class="purchase_footer" width="20%">
+                                    <span class="f-fallback purchase_total">{{ cart_total }}</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td align="center">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                            <tr>
+                                <td align="center">
+                                    <a href="{{ cart_recovery_url }}" class="f-fallback button button--green" target="_blank">
+                                        Complete Your Purchase
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            {% if special_offer %}
+            <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                    <td class="attributes_content">
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td class="attributes_item">
+                                    <span class="f-fallback">
+                                        <strong>Special Offer!</strong> {{ special_offer }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            {% endif %}
+            
+            <p>If you're having trouble with your purchase or have any questions, our customer service team is here to help.</p>
+            
+            <p>Best regards,<br>The Rey Premium Vogue Team</p>
+            
+            <p class="sub">If you didn't create a cart on our website, you can safely ignore this email.</p>
+        </div>
+    </td>
+</tr>
+{% endblock %} 

@@ -6,6 +6,7 @@ import uuid
 import string
 import random
 import time
+from django.utils import timezone
 
 def generate_unique_share_id():
     """Generate a unique share ID combining timestamp and random characters"""
@@ -48,16 +49,38 @@ class Wishlist(models.Model):
 
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    last_opened_at = models.DateTimeField(null=True, blank=True)
+    unsubscribe_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    welcome_email_sent = models.BooleanField(default=False)
+    reactivation_email_sent = models.BooleanField(default=False)
+    preferences = models.JSONField(default=dict, blank=True)
     
-    def __str__(self):
-        return self.email
-
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Newsletter Subscriber'
         verbose_name_plural = 'Newsletter Subscribers'
+    
+    def __str__(self):
+        return self.email
+    
+    def mark_opened(self):
+        self.last_opened_at = timezone.now()
+        self.save()
+    
+    def get_full_name(self):
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+        return self.email.split('@')[0]
+    
+    def save(self, *args, **kwargs):
+        if not self.unsubscribe_token:
+            self.unsubscribe_token = uuid.uuid4()
+        super().save(*args, **kwargs)
 
 class ContactMessage(models.Model):
     STATUS_CHOICES = [
@@ -98,7 +121,6 @@ class Promotion(models.Model):
     
     @property
     def is_valid(self):
-        from django.utils import timezone
         now = timezone.now()
         return self.is_active and self.start_date <= now <= self.end_date
 

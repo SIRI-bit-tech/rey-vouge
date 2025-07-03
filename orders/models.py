@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from products.models import Product
+from products.models import Product, ProductVariant
 from decimal import Decimal
 import uuid
 from django.utils import timezone
@@ -90,45 +90,46 @@ class OrderItem(models.Model):
         return self.price * self.quantity
 
 class Cart(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    shipping_address = models.JSONField(null=True, blank=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    reminder_count = models.PositiveSmallIntegerField(default=0)
+    last_reminder_sent = models.DateTimeField(null=True, blank=True)
     
-    @property
-    def subtotal(self):
+    def get_total(self):
         return sum(item.get_total_price() for item in self.items.all())
     
-    @property
-    def shipping_cost(self):
-        # Calculate shipping cost based on your business logic
-        return Decimal('10.00') if self.subtotal < Decimal('100.00') else Decimal('0.00')
+    def get_total_display(self):
+        return f"₦{self.get_total():,.2f}"
     
-    @property
-    def total(self):
-        return self.subtotal + self.shipping_cost
-    
-    def get_total_items(self):
-        return sum(item.quantity for item in self.items.all())
+    def mark_reminder_sent(self):
+        self.last_reminder_sent = timezone.now()
+        self.reminder_count += 1
+        self.save()
     
     def __str__(self):
-        return f'Cart for {self.user.email}'
+        return f"Cart {self.id} - {self.user.email}"
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
-    size = models.CharField(max_length=10)
-    color = models.CharField(max_length=50, null=True, blank=True)
-    
-    class Meta:
-        unique_together = ('cart', 'product', 'size', 'color')
-    
-    def __str__(self):
-        return f'{self.quantity}x {self.product.name} in {self.cart}'
+    added_at = models.DateTimeField(auto_now_add=True)
     
     def get_total_price(self):
-        return self.product.get_price() * self.quantity
+        base_price = self.variant.price if self.variant else self.product.price
+        return Decimal(str(base_price)) * Decimal(str(self.quantity))
+    
+    def get_total_price_display(self):
+        return f"₦{self.get_total_price():,.2f}"
+    
+    class Meta:
+        unique_together = ('cart', 'product', 'variant')
+    
+    def __str__(self):
+        return f"{self.quantity}x {self.product.name}"
 
 class Payment(models.Model):
     PAYMENT_STATUS_CHOICES = [

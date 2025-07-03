@@ -75,7 +75,6 @@ class Product(models.Model):
         ('48', '48'),
         ('49', '49'),
         ('50', '50'),
-        
     ]
     
     PERFUME_SIZES = [
@@ -112,7 +111,6 @@ class Product(models.Model):
         ('pearl', 'Pearl'),
         ('ivory', 'Ivory'),
         ('lilac', 'Lilac'),
-        
     ]
     
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
@@ -198,25 +196,21 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('products:product_detail', kwargs={'slug': self.slug})
     
-    def get_price(self):
-        return self.sale_price if self.sale_price else self.price
-    
     @property
     def discount_percentage(self):
-        if self.sale_price:
+        if self.sale_price and self.price:
             discount = ((self.price - self.sale_price) / self.price) * 100
             return round(discount)
         return 0
     
     @property
     def is_on_sale(self):
-        return bool(self.sale_price)
+        return bool(self.sale_price and self.sale_price < self.price)
     
     @property
     def average_rating(self):
-        reviews = self.reviews.all()
-        if reviews:
-            return sum(review.rating for review in reviews) / len(reviews)
+        if self.reviews.exists():
+            return round(self.reviews.aggregate(models.Avg('rating'))['rating__avg'], 1)
         return 0
     
     @property
@@ -226,79 +220,69 @@ class Product(models.Model):
     @property
     def color_list(self):
         return [color.strip() for color in self.colors.split(',')] if self.colors else []
-
+    
     def get_similar_products(self, limit=4):
-        """Get similar products based on category and attributes"""
+        """Get similar products based on category and tags."""
         similar_products = Product.objects.filter(
-            category=self.category,
-            is_active=True
-        ).exclude(id=self.id)
-
-        # Filter by similar price range (±20%)
-        min_price = self.price * Decimal('0.8')
-        max_price = self.price * Decimal('1.2')
-        similar_products = similar_products.filter(price__range=(min_price, max_price))
-
-        # Prioritize products with similar attributes
-        if self.colors:
-            color_query = Q()
-            for color in self.color_list:
-                color_query |= Q(colors__icontains=color)
-            similar_products = similar_products.filter(color_query)
-
-        if self.available_sizes:
-            size_query = Q()
-            for size in self.size_list:
-                size_query |= Q(available_sizes__icontains=size)
-            similar_products = similar_products.filter(size_query)
-
-        return similar_products[:limit]
-
+            Q(category=self.category) |
+            Q(colors__icontains=self.colors) if self.colors else Q()
+        ).exclude(id=self.id).filter(is_active=True)
+        
+        # Add price range filter
+        price_range = Decimal('0.5')  # 50% above or below the current product's price
+        min_price = self.price * (1 - price_range)
+        max_price = self.price * (1 + price_range)
+        
+        similar_products = similar_products.filter(
+            price__gte=min_price,
+            price__lte=max_price
+        )
+        
+        return similar_products.distinct()[:limit]
+    
     def get_frequently_bought_together(self, limit=3):
-        """Get products frequently bought together"""
+        """Get products frequently bought together based on order history."""
         from orders.models import OrderItem
         
-        # Get orders containing this product
+        # Get all orders that contain this product
         orders_with_this_product = OrderItem.objects.filter(
             product=self
         ).values_list('order', flat=True)
         
         # Get other products from those orders
-        frequently_bought = OrderItem.objects.filter(
-            order__in=orders_with_this_product
+        frequently_bought_products = Product.objects.filter(
+            orderitem__order__in=orders_with_this_product
         ).exclude(
-            product=self
-        ).values_list(
-            'product', flat=True
+            id=self.id
         ).annotate(
-            count=models.Count('product')
-        ).order_by('-count')
+            times_bought_together=models.Count('id')
+        ).filter(
+            is_active=True
+        ).order_by('-times_bought_together')
         
-        product_ids = [item[0] for item in frequently_bought[:limit]]
-        return Product.objects.filter(id__in=product_ids, is_active=True)
-
+        return frequently_bought_products[:limit]
+    
     def get_viewed_together(self, limit=4):
-        """Get products that are often viewed together"""
+        """Get products that are often viewed together with this product."""
         from core.models import ProductView
         
-        # Get sessions that viewed this product
+        # Get all sessions where this product was viewed
         sessions_with_this_product = ProductView.objects.filter(
             product=self
         ).values_list('session_id', flat=True)
         
         # Get other products viewed in those sessions
-        viewed_together = ProductView.objects.filter(
-            session_id__in=sessions_with_this_product
+        viewed_together_products = Product.objects.filter(
+            productview__session_id__in=sessions_with_this_product
         ).exclude(
-            product=self
-        ).values_list(
-            'product', flat=True
+            id=self.id
         ).annotate(
-            count=models.Count('product')
-        ).order_by('-count')
+            view_count=models.Count('id')
+        ).filter(
+            is_active=True
+        ).order_by('-view_count')
         
-        product_ids = [item[0] for item in viewed_together[:limit]]
-        return Product.objects.filter(id__in=product_ids, is_active=True)
+        return viewed_together_products[:limit]
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
@@ -338,3 +322,41 @@ class Review(models.Model):
     
     def __str__(self):
         return f"Review by {self.user.email} for {self.product.name}"
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    size = models.CharField(max_length=20)  # Changed to support all size types
+    color = models.CharField(max_length=50)
+    sku = models.CharField(max_length=100, unique=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0)
+    image = CloudinaryField('image',  # Changed to use CloudinaryField
+        folder='product_variants/',
+        transformation={
+            'width': 1200,
+            'height': 1200,
+            'crop': 'fill',
+            'quality': 'auto:good'
+        },
+        null=True,
+        blank=True
+    )
+    
+    class Meta:
+        unique_together = ('product', 'size', 'color')
+        ordering = ['size', 'color']
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.size} {self.color}"
+    
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            # Generate SKU based on product name, size, and color
+            base = slugify(f"{self.product.name}-{self.size}-{self.color}")
+            self.sku = base[:100]  # Ensure it fits in the field
+        if not self.price:
+            self.price = self.product.price
+        super().save(*args, **kwargs)
+    
+    def get_price(self):
+        return Decimal(str(self.price or self.product.price))
