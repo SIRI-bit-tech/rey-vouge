@@ -35,8 +35,28 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-here')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(" ")
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS configuration
+allowed_hosts_str = os.getenv('ALLOWED_HOSTS', '')
+if DEBUG:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '[::1]',  # IPv6 localhost
+        'localhost:8000',
+        '127.0.0.1:8000',
+    ]
+    # Add any additional hosts from environment variable
+    if allowed_hosts_str:
+        ALLOWED_HOSTS.extend([host.strip() for host in allowed_hosts_str.split(',') if host.strip()])
+else:
+    # Production settings - require explicit allowed hosts
+    if not allowed_hosts_str:
+        raise ValueError("ALLOWED_HOSTS environment variable is required in production!")
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
+
+# Print for debugging
+print(f"DEBUG setting: {DEBUG}")
+print(f"ALLOWED_HOSTS setting: {ALLOWED_HOSTS}")
 
 # Application definition
 
@@ -211,6 +231,19 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:home'
 
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Django-Axes Configuration
+AXES_FAILURE_LIMIT = 5  # Number of login attempts before blocking
+AXES_LOCK_OUT_AT_FAILURE = True  # Lock out after failure limit is exceeded
+AXES_COOLOFF_TIME = 1  # Hours before login is allowed again
+AXES_RESET_ON_SUCCESS = True  # Reset the number of failed attempts on success
+
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
@@ -218,17 +251,14 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # Site ID
 SITE_ID = 1
 
-# Email settings
+# Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USE_TLS = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'siritech001@gmail.com')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
-EMAIL_TIMEOUT = 30  # timeout in seconds
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # Site settings
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'localhost:8000')
@@ -243,15 +273,18 @@ if DEBUG:
 ADMIN_WHATSAPP = os.getenv('ADMIN_WHATSAPP')
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Configure appropriately in production
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # Session Settings
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = not DEBUG
 
 # Account Settings
 ACCOUNT_EMAIL_REQUIRED = True
@@ -271,28 +304,16 @@ EMAIL_TASK_MAX_RETRIES = 3
 CART_ABANDONMENT_DELAY = 24  # hours
 CART_ABANDONMENT_REMINDER_LIMIT = 2  # maximum number of reminders
 
-# Performance Optimization Settings
-if DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
+# Cache configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-            'OPTIONS': {
-                'parser_class': 'redis.connection.PythonParser',
-                'pool_class': 'redis.BlockingConnectionPool',
-                'retry_on_timeout': True,
-                'socket_connect_timeout': 5,
-                'socket_timeout': 5,
-            }
-        }
-    }
+}
 
 # Cache timeout settings
 CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
@@ -394,18 +415,16 @@ LOGGING = {
     },
 }
 
-# Security Headers
+# Security settings
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 X_FRAME_OPTIONS = 'DENY'
-
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
 
 # Add these settings for GlitchTip
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
@@ -425,11 +444,11 @@ PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', 'your-public-key-here')
 SHIPPING_COST = Decimal('10.00')  # Default shipping cost
 FREE_SHIPPING_THRESHOLD = Decimal('100.00')  # Free shipping threshold
 
-# Cloudinary settings
+# Cloudinary configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET')
 }
 
 # Media files storage
