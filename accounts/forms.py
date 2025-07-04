@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
+from .models import CustomUser
 
 User = get_user_model()
 
@@ -82,4 +83,14 @@ class CustomAuthenticationForm(AuthenticationForm):
         return self.cleaned_data
 
     def get_user(self):
-        return getattr(self, 'user_cache', None) 
+        return getattr(self, 'user_cache', None)
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'timezone']
+        widgets = {
+            'timezone': forms.Select(
+                attrs={'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-accent focus:ring-accent sm:text-sm'}
+            )
+        } 

@@ -11,6 +11,8 @@ import htmlmin
 from django.urls import resolve
 from .models import ProductView
 from .monitoring import setup_monitoring, log_security_event
+import pytz
+from django.utils import timezone
 
 class PageSpeedMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
@@ -226,3 +228,17 @@ class GDPRComplianceMiddleware:
         if hasattr(response, 'context_data'):
             response.context_data['cookies_accepted'] = request.cookies_accepted
         return response 
+
+class TimezoneMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            # Set timezone from user preferences
+            tzname = request.user.timezone
+            if tzname:
+                timezone.activate(pytz.timezone(tzname))
+            else:
+                timezone.deactivate()
+        return self.get_response(request) 

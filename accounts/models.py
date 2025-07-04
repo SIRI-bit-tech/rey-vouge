@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -61,6 +62,13 @@ class CustomUser(AbstractUser):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     
+    timezone = models.CharField(
+        max_length=50,
+        choices=settings.SUPPORTED_TIMEZONES,
+        default=settings.DEFAULT_USER_TIMEZONE,
+        help_text="User's preferred timezone"
+    )
+    
     objects = CustomUserManager()
     
     USERNAME_FIELD = 'email'
@@ -71,7 +79,7 @@ class CustomUser(AbstractUser):
         verbose_name_plural = _("Users")
     
     def __str__(self):
-        return self.email
+        return self.email or self.username
     
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.email

@@ -14,8 +14,7 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
-import bugsnag
-from bugsnag.django.middleware import BugsnagMiddleware
+# Removed Bugsnag imports
 from decimal import Decimal
 
 import logging
@@ -72,7 +71,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'bugsnag.django.middleware.BugsnagMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -82,7 +80,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
     'core.middleware.ImageOptimizationMiddleware',
     'core.middleware.PageSpeedMiddleware',
     'core.middleware.MonitoringMiddleware',
@@ -90,6 +87,8 @@ MIDDLEWARE = [
     'defender.middleware.FailedLoginMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'core.middleware.GDPRComplianceMiddleware',  # Add GDPR compliance middleware
+    'core.middleware.TimezoneMiddleware',  # Add timezone handling
+    'allauth.account.middleware.AccountMiddleware',  # Add allauth middleware
 ]
 
 if not DEBUG:
@@ -98,7 +97,7 @@ if not DEBUG:
         'django.middleware.cache.UpdateCacheMiddleware',
         *MIDDLEWARE,
         'django.middleware.cache.FetchFromCacheMiddleware',
-]
+    ]
 
 ROOT_URLCONF = 'rey_vogue.urls'
 
@@ -171,11 +170,22 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
 USE_TZ = True
 
+# List of supported timezones for user preferences
+SUPPORTED_TIMEZONES = [
+    ('UTC', 'UTC'),
+    ('US/Pacific', 'US Pacific'),
+    ('US/Eastern', 'US Eastern'),
+    ('Europe/London', 'London'),
+    ('Europe/Paris', 'Paris'),
+    ('Asia/Dubai', 'Dubai'),
+    ('Asia/Tokyo', 'Tokyo'),
+    ('Australia/Sydney', 'Sydney'),
+]
+
+# Default timezone for new users
+DEFAULT_USER_TIMEZONE = 'UTC'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
