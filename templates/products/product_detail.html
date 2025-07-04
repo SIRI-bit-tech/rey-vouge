@@ -375,7 +375,7 @@
     <!-- Social Sharing -->
     <div class="mt-8 border-t pt-6">
         <h3 class="text-lg font-semibold mb-4">Share this Product</h3>
-        <div class="flex space-x-4">
+        <div class="flex flex-wrap gap-4">
             <!-- Facebook -->
             <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
                target="_blank"
@@ -391,6 +391,21 @@
                 <i class="fab fa-twitter mr-2"></i>
                 Tweet
             </a>
+            
+            <!-- Pinterest -->
+            <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&media={{ request.build_absolute_uri }}{{ product.get_first_image.url }}&description={{ product.name|urlencode }}: {{ product.description|truncatewords:20|urlencode }}"
+               target="_blank"
+               class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300 flex items-center">
+                <i class="fab fa-pinterest-p mr-2"></i>
+                Pin it
+            </a>
+
+            <!-- Instagram Story -->
+            <button onclick="shareToInstagramStory()"
+                    class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition duration-300 flex items-center">
+                <i class="fab fa-instagram mr-2"></i>
+                Share to Story
+            </button>
             
             <!-- WhatsApp -->
             <a href="https://wa.me/?text={{ product.name|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
@@ -678,6 +693,29 @@
         }).catch(function(err) {
             console.error('Failed to copy link: ', err);
         });
+    }
+
+    function shareToInstagramStory() {
+        // Check if the user is on mobile (Instagram story sharing works best on mobile)
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // Get the product image URL
+            const imageUrl = '{{ request.build_absolute_uri }}{{ product.get_first_image.url }}';
+            
+            // Create the Instagram story deep link
+            const storyUrl = `instagram-stories://share?source_application=rey_vogue&background_image=${encodeURIComponent(imageUrl)}&attribution_link=${encodeURIComponent(window.location.href)}`;
+            
+            // Try to open Instagram
+            window.location.href = storyUrl;
+            
+            // Fallback if Instagram app is not installed
+            setTimeout(() => {
+                if (!document.hidden) {
+                    alert('Please install Instagram app to share to stories.');
+                }
+            }, 2000);
+        } else {
+            alert('Instagram story sharing is only available on mobile devices.');
+        }
     }
 </script>
 {% endblock %} 
