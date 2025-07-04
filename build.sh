@@ -18,6 +18,11 @@ python -m pip install --upgrade pip
 # Install python dependencies
 pip install -r requirements.txt
 
+# Create necessary directories and files with proper permissions
+mkdir -p logs
+touch logs/rey_vogue.log logs/security.log logs/performance.log
+chmod 666 logs/rey_vogue.log logs/security.log logs/performance.log
+
 # Collect static files
 python manage.py collectstatic --no-input
 
