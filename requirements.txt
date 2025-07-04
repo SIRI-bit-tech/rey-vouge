@@ -46,7 +46,7 @@ async-timeout==5.0.1
 # Storage & Media
 cloudinary==1.44.1
 dj3-cloudinary-storage==0.0.6
-Pillow==10.2.0
+Pillow==9.5.0
 
 # HTML/Template Processing
 django-htmlmin==0.11.0
