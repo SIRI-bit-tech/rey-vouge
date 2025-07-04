@@ -102,6 +102,18 @@
     </style>
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Google Analytics -->
+    {% if GA4_MEASUREMENT_ID %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA4_MEASUREMENT_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ GA4_MEASUREMENT_ID }}');
+    </script>
+    {% endif %}
 </head>
 <body class="font-sans bg-white">
     <!-- Mobile Sidebar -->

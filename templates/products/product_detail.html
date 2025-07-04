@@ -365,6 +365,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Product Description -->
+    <div class="mt-8">
+        <h3 class="text-lg font-semibold mb-2">Description</h3>
+        <p class="text-gray-600">{{ product.description }}</p>
+    </div>
+
+    <!-- Social Sharing -->
+    <div class="mt-8 border-t pt-6">
+        <h3 class="text-lg font-semibold mb-4">Share this Product</h3>
+        <div class="flex space-x-4">
+            <!-- Facebook -->
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+               target="_blank"
+               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center">
+                <i class="fab fa-facebook-f mr-2"></i>
+                Share
+            </a>
+            
+            <!-- Twitter -->
+            <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ product.name|urlencode }}"
+               target="_blank"
+               class="bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition duration-300 flex items-center">
+                <i class="fab fa-twitter mr-2"></i>
+                Tweet
+            </a>
+            
+            <!-- WhatsApp -->
+            <a href="https://wa.me/?text={{ product.name|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
+               target="_blank"
+               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex items-center">
+                <i class="fab fa-whatsapp mr-2"></i>
+                Share
+            </a>
+            
+            <!-- Copy Link -->
+            <button onclick="copyProductLink()"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-300 flex items-center">
+                <i class="fas fa-link mr-2"></i>
+                Copy Link
+            </button>
+        </div>
+    </div>
 </div>
 
 {# Include Product Recommendations #}
@@ -627,6 +670,14 @@
                 notification.remove();
             }, 300);
         }, 3000);
+    }
+
+    function copyProductLink() {
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('Link copied to clipboard!');
+        }).catch(function(err) {
+            console.error('Failed to copy link: ', err);
+        });
     }
 </script>
 {% endblock %} 

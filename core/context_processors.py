@@ -53,4 +53,13 @@ def breadcrumbs(request):
     return {
         'show_breadcrumbs': True,
         'breadcrumbs': breadcrumbs
+    }
+
+def google_analytics(request):
+    """
+    Adds Google Analytics settings to the context
+    """
+    return {
+        'GA_TRACKING_ID': getattr(settings, 'GA_TRACKING_ID', None),
+        'GA4_MEASUREMENT_ID': getattr(settings, 'GA4_MEASUREMENT_ID', None),
     } 

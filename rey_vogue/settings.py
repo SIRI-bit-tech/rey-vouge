@@ -105,6 +105,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.error_tracking_settings',
                 'core.context_processors.breadcrumbs',
+                'core.context_processors.google_analytics',
             ],
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
@@ -393,4 +394,8 @@ CLOUDINARY_STORAGE = {
 
 # Media files storage
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Google Analytics Settings
+GA_TRACKING_ID = os.environ.get('GA_TRACKING_ID', '')  # UA-XXXXXXXXX-X format for Universal Analytics
+GA4_MEASUREMENT_ID = os.environ.get('GA4_MEASUREMENT_ID', '')  # G-XXXXXXXXXX format for GA4
 
