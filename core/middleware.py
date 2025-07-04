@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import htmlmin
 from django.urls import resolve
 from .models import ProductView
+from .monitoring import setup_monitoring, log_security_event
 
 class PageSpeedMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
@@ -157,4 +158,40 @@ class ProductViewMiddleware(MiddlewareMixin):
             # Log error but don't interrupt request
             pass
             
+        return None 
+
+class MonitoringMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Setup monitoring context
+        setup_monitoring(request)
+        
+        # Log suspicious activity
+        if request.user.is_authenticated:
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            is_bot = False
+            if hasattr(request, 'user_agent'):
+                is_bot = request.user_agent.is_bot
+            
+            if is_bot:
+                log_security_event(
+                    'suspicious_activity',
+                    user=request.user,
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    details={'user_agent': user_agent}
+                )
+        
+        response = self.get_response(request)
+        return response
+
+    def process_exception(self, request, exception):
+        # Log unhandled exceptions
+        log_security_event(
+            'unhandled_exception',
+            user=request.user if hasattr(request, 'user') else None,
+            ip_address=request.META.get('REMOTE_ADDR'),
+            details={'exception': str(exception)}
+        )
         return None 

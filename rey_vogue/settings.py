@@ -18,6 +18,8 @@ import bugsnag
 from bugsnag.django.middleware import BugsnagMiddleware
 from decimal import Decimal
 
+import logging
+
 
 load_dotenv()
 
@@ -58,6 +60,9 @@ INSTALLED_APPS = [
     'tailwind',
     'cloudinary',
     'cloudinary_storage',
+    'axes',  # Django Axes for login security
+    'defender',  # Django Defender for security
+    'django_user_agents',  # User agent parsing
     
     # Local apps
     'core.apps.CoreConfig',
@@ -80,6 +85,10 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'core.middleware.ImageOptimizationMiddleware',
     'core.middleware.PageSpeedMiddleware',
+    'core.middleware.MonitoringMiddleware',
+    'axes.middleware.AxesMiddleware',
+    'defender.middleware.FailedLoginMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
 ]
 
 if not DEBUG:
@@ -287,14 +296,6 @@ CACHE_MIDDLEWARE_KEY_PREFIX = 'rey_vogue'
 # Cache middleware settings
 CACHE_MIDDLEWARE_ALIAS = 'default'
 
-# Initialize Bugsnag
-bugsnag.configure(
-    api_key=os.getenv('BUGSNAG_API_KEY'),
-    project_root=BASE_DIR,
-    release_stage=os.getenv('ENVIRONMENT', 'production'),
-    notify_release_stages=['production', 'staging'],
-)
-
 # Update the logging configuration
 LOGGING = {
     'version': 1,
@@ -304,54 +305,89 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+        'json': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+            'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/rey_vogue.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/security.log'),
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'performance_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/performance.log'),
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['console'],
+            'handlers': ['mail_admins', 'file'],
             'level': 'ERROR',
             'propagate': False,
         },
-        'rey_vogue': {  # Add application-specific logger
-            'handlers': ['console'],
+        'django.security': {
+            'handlers': ['security_file', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rey_vogue': {
+            'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
+        'rey_vogue.performance': {
+            'handlers': ['performance_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rey_vogue.security': {
+            'handlers': ['security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
-
-if DEBUG:
-    # Add file logging only in debug mode
-    log_dir = os.path.join(BASE_DIR, 'logs')
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    
-    LOGGING['handlers']['file'] = {
-        'level': 'ERROR',
-        'class': 'logging.FileHandler',
-        'filename': os.path.join(log_dir, 'django.log'),
-        'formatter': 'verbose',
-    }
-    
-    # Add file handler to loggers
-    LOGGING['loggers']['django']['handlers'].append('file')
-    LOGGING['loggers']['django.request']['handlers'].append('file')
-    LOGGING['loggers']['rey_vogue']['handlers'].append('file')
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -398,4 +434,34 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # Google Analytics Settings
 GA_TRACKING_ID = os.environ.get('GA_TRACKING_ID', '')  # UA-XXXXXXXXX-X format for Universal Analytics
 GA4_MEASUREMENT_ID = os.environ.get('GA4_MEASUREMENT_ID', '')  # G-XXXXXXXXXX format for GA4
+
+# Security Monitoring Settings
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 5
+AXES_LOCK_OUT_AT_FAILURE = True
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
+AXES_BEHIND_REVERSE_PROXY = True
+AXES_ONLY_USER_FAILURES = True  # Only lock based on username, not IP
+AXES_RESET_ON_SUCCESS = True  # Reset the failure count on successful login
+
+# Django Defender Settings
+DEFENDER_ENABLED = True
+DEFENDER_LOGIN_FAILURE_LIMIT = 5
+DEFENDER_COOLOFF_TIME = 300  # 5 minutes
+DEFENDER_REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+DEFENDER_BEHIND_REVERSE_PROXY = True
+DEFENDER_LOCK_OUT_BY_IP_AND_USERNAME = True
+DEFENDER_DISABLE_IP_LOCKOUT = False
+DEFENDER_DISABLE_USERNAME_LOCKOUT = False
+DEFENDER_STORE_ACCESS_ATTEMPTS = True
+
+# Activity Stream Settings
+ACTSTREAM_SETTINGS = {
+    'FETCH_RELATIONS': True,
+    'USE_JSONFIELD': True,
+    'USE_PREFETCH': True,
+    'USE_JSONFIELD_FOR_EXTRA_DATA': True,
+    'GFK_FETCH_DEPTH': 1,
+}
 
