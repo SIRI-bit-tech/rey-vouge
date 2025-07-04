@@ -2,6 +2,19 @@
 # exit on error
 set -o errexit
 
+# Install system dependencies
+apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    gcc \
+    libpq-dev
+
+# Upgrade pip
+python -m pip install --upgrade pip
+
 # Install python dependencies
 pip install -r requirements.txt
 
