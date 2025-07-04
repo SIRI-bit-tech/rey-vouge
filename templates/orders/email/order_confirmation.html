@@ -53,15 +53,15 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
+    <div class="header">
             <h1>Order Confirmation</h1>
             <p>Thank you for shopping with REY PREMIUM VOGUE!</p>
-        </div>
+    </div>
 
-        <div class="order-details">
-            <h2>Order Details</h2>
+    <div class="order-details">
+        <h2>Order Details</h2>
             <p><strong>Order Number:</strong> {{ order.order_number }}</p>
-            <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+        <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
             <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
         </div>
 
@@ -73,39 +73,39 @@
             <p><strong>State:</strong> {{ order.shipping_address.state }}</p>
             <p><strong>Postal Code:</strong> {{ order.shipping_address.postal_code }}</p>
             <p><strong>Phone:</strong> {{ order.shipping_address.phone }}</p>
-        </div>
+            </div>
 
         <h2>Order Items</h2>
         <table class="items-table">
-            <thead>
-                <tr>
+        <thead>
+            <tr>
                     <th>Product</th>
                     <th>Size</th>
                     <th>Color</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
                 {% for item in items %}
-                <tr>
+            <tr>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.size }}</td>
                     <td>{{ item.color|default:'-' }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>₦{{ item.price }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
+                <td>{{ item.quantity }}</td>
+                <td>₦{{ item.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        
         <div class="total-section">
             <p><strong>Subtotal:</strong> ₦{{ order.subtotal }}</p>
             <p><strong>Shipping:</strong> ₦{{ order.shipping_cost }}</p>
             <p><strong>Total:</strong> ₦{{ order.total_amount }}</p>
-        </div>
-
-        <div class="footer">
+    </div>
+    
+    <div class="footer">
             <p>If you have any questions about your order, please contact our customer service:</p>
             <p>Email: support@reyvogue.com | Phone: +234-XXX-XXX-XXXX</p>
             <p>Thank you for choosing REY PREMIUM VOGUE!</p>

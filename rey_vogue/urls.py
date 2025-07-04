@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
-from .sitemaps import StaticViewSitemap, ProductSitemap, CategorySitemap, LocationSitemap, PromotionSitemap
+from .sitemaps import ProductSitemap, StaticViewSitemap, CategorySitemap, LocationSitemap, PromotionSitemap
 
 sitemaps = {
     'static': StaticViewSitemap,
@@ -30,7 +30,7 @@ sitemaps = {
 }
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),  # Use default Django admin
     path('', include('core.urls')),
     path('products/', include('products.urls')),
     path('accounts/', include('accounts.urls')),

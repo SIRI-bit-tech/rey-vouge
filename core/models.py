@@ -59,7 +59,7 @@ class NewsletterSubscriber(models.Model):
     welcome_email_sent = models.BooleanField(default=False)
     reactivation_email_sent = models.BooleanField(default=False)
     preferences = models.JSONField(default=dict, blank=True)
-    
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Newsletter Subscriber'

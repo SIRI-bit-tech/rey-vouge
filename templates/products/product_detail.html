@@ -96,6 +96,23 @@
                 <span class="text-3xl text-gray-900 font-semibold">₦{{ product.price }}</span>
                         {% endif %}
                     </div>
+
+                    <!-- Stock Status -->
+                    <div class="mb-6">
+                        {% if product.stock_status == 'out_of_stock' %}
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                            <span class="font-bold">Out of Stock</span>
+                        </div>
+                        {% elif product.stock_status == 'low_stock' %}
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-2 rounded">
+                            <span class="font-bold">Low Stock</span> - Only {{ product.stock }} items left
+                        </div>
+                        {% else %}
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
+                            <span class="font-bold">In Stock</span>
+                        </div>
+                        {% endif %}
+                    </div>
                     
             <!-- Description -->
             <div class="prose prose-lg mb-8">
@@ -157,9 +174,10 @@
             <!-- Actions -->
             <div class="flex space-x-4 mb-8">
                 <button onclick="addToCart({{ product.id }}, parseInt(document.getElementById('quantity').value))"
-                        class="flex-1 bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                        {% if not product.is_available %}disabled{% endif %}
+                        class="flex-1 {% if product.is_available %}bg-accent hover:bg-accent/90{% else %}bg-gray-400 cursor-not-allowed{% endif %} text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
                                 <i class="fas fa-shopping-bag mr-2"></i>
-                                Add to Cart
+                                {% if product.is_available %}Add to Cart{% else %}Out of Stock{% endif %}
                             </button>
                 <button onclick="toggleWishlist({{ product.id }})"
                         class="px-4 py-3 border-2 rounded-lg hover:border-accent transition duration-300">

@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>Update Stock Levels</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_stock">
+        <input type="hidden" name="apply" value="true">
+        
+        <div style="margin-bottom: 20px;">
+            <p>Selected Products:</p>
+            <ul>
+                {% for product in products %}
+                    <li>{{ product.name }} (Current Stock: {{ product.stock }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="operation">Operation:</label>
+            <select name="operation" id="operation" required>
+                <option value="add">Add to Stock</option>
+                <option value="subtract">Subtract from Stock</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="stock_change">Quantity:</label>
+            <input type="number" name="stock_change" id="stock_change" min="0" required>
+        </div>
+        
+        <div class="submit-row">
+            <input type="submit" value="Update Stock" class="default">
+            <a href="{{ request.get_full_path }}" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

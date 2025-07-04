@@ -39,6 +39,10 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('products:product_list_by_category', args=[self.slug])
 
+    def product_count(self):
+        return self.products.count()
+    product_count.short_description = 'Number of Products'
+
 class Product(models.Model):
     CLOTHING_SIZES = [
         ('XS', 'Extra Small'),
@@ -283,6 +287,26 @@ class Product(models.Model):
         ).order_by('-view_count')
         
         return viewed_together_products[:limit]
+
+    @property
+    def stock_status(self):
+        if self.stock <= 0:
+            return 'out_of_stock'
+        elif self.stock <= 10:
+            return 'low_stock'
+        return 'in_stock'
+
+    @property
+    def stock_status_display(self):
+        if self.stock <= 0:
+            return 'Out of Stock'
+        elif self.stock <= 10:
+            return f'Low Stock ({self.stock} remaining)'
+        return 'In Stock'
+
+    @property
+    def is_available(self):
+        return self.stock > 0 and self.is_active
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)

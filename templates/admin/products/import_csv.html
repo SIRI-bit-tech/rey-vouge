@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>Import Products from CSV</h2>
+    
+    <div style="margin-bottom: 20px;">
+        <h3>CSV Format Requirements:</h3>
+        <p>Your CSV file should have the following columns:</p>
+        <ul>
+            <li>sku (unique identifier)</li>
+            <li>name</li>
+            <li>category</li>
+            <li>description</li>
+            <li>price</li>
+            <li>stock</li>
+            <li>is_active (true/false)</li>
+        </ul>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+            <label for="csv_file">Select CSV File:</label>
+            <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+        </div>
+        
+        <div class="submit-row">
+            <input type="submit" value="Import Products" class="default">
+            <a href="../" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+    
+    <div style="margin-top: 20px;">
+        <h3>Sample CSV Format:</h3>
+        <pre>sku,name,category,description,price,stock,is_active
+SKU001,Product 1,Category 1,Description 1,19.99,100,true
+SKU002,Product 2,Category 2,Description 2,29.99,50,true</pre>
+    </div>
+</div>
+{% endblock %} 

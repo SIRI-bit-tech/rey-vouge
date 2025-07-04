@@ -1,0 +1,249 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 15px;
+    }
+    .product-card h3 {
+        margin: 0 0 10px;
+        color: #333;
+        font-size: 16px;
+    }
+    .stock-info {
+        margin: 10px 0;
+        font-size: 14px;
+        color: #444;
+    }
+    .info-label {
+        font-weight: bold;
+        color: #333;
+        display: inline-block;
+        width: 80px;
+    }
+    .info-value {
+        color: #666;
+        font-weight: 500;
+    }
+    .stock-critical { color: #ff4444; font-weight: bold; }
+    .stock-warning { color: #ff8800; font-weight: bold; }
+    .stock-good { color: #00C851; font-weight: bold; }
+    .stock-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 15px;
+    }
+    .stock-input {
+        width: 80px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .update-btn {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .update-btn:hover {
+        background: #45a049;
+    }
+    .filters {
+        padding: 20px;
+        margin-bottom: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+    .filters h3 {
+        color: #333;
+        margin: 0 0 15px 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .button {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 10px;
+        transition: background-color 0.3s;
+    }
+    .button:hover {
+        background: #1557b0;
+    }
+    .button.active {
+        background: #1557b0;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .loading {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .success-message {
+        background: #00C851;
+        color: white;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module">
+    <div class="filters">
+        <h3>Quick Filters</h3>
+        <button class="button active" data-filter="all">All Products</button>
+        <button class="button" data-filter="out">Out of Stock</button>
+        <button class="button" data-filter="low">Low Stock</button>
+    </div>
+    
+    <div class="inventory-grid">
+        {% for product in products %}
+        <div class="product-card" data-stock="{{ product.stock }}">
+            <h3>{{ product.name }}</h3>
+            <div class="stock-info">
+                <div><span class="info-label">SKU:</span> <span class="info-value">{{ product.sku }}</span></div>
+                <div><span class="info-label">Category:</span> <span class="info-value">{{ product.category.name }}</span></div>
+                {% if product.stock <= 0 %}
+                    <div><span class="stock-critical">Out of Stock</span></div>
+                {% elif product.stock <= 10 %}
+                    <div><span class="stock-warning">Low Stock ({{ product.stock }} remaining)</span></div>
+                {% else %}
+                    <div><span class="stock-good">In Stock ({{ product.stock }} units)</span></div>
+                {% endif %}
+            </div>
+            <form class="stock-form" data-product-id="{{ product.id }}">
+                <input type="number" class="stock-input" value="{{ product.stock }}" min="0" required
+                       id="stock_{{ product.id }}">
+                <button type="submit" class="update-btn">Update</button>
+                <div class="success-message">Stock updated successfully!</div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to filter buttons
+    document.querySelectorAll('.filters .button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.filters .button').forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            // Apply filter
+            filterProducts(this.dataset.filter);
+        });
+    });
+
+    // Add submit handlers to all stock forms
+    document.querySelectorAll('.stock-form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const productId = this.dataset.productId;
+            const newStock = this.querySelector('.stock-input').value;
+            const submitButton = this.querySelector('.update-btn');
+            const successMessage = this.querySelector('.success-message');
+            const form = this;
+
+            // Disable form while updating
+            form.classList.add('loading');
+            submitButton.disabled = true;
+
+            fetch('{% url "admin:update_stock" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `product_id=${productId}&new_stock=${newStock}`
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to update stock');
+                // Show success message
+                successMessage.style.display = 'block';
+                // Update the stock display
+                const card = form.closest('.product-card');
+                card.dataset.stock = newStock;
+                updateStockDisplay(card, parseInt(newStock));
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                alert('Error updating stock: ' + error.message);
+            })
+            .finally(() => {
+                // Re-enable form
+                form.classList.remove('loading');
+                submitButton.disabled = false;
+            });
+        });
+    });
+});
+
+function updateStockDisplay(card, newStock) {
+    const stockInfo = card.querySelector('.stock-info');
+    const stockSpan = stockInfo.querySelector('span');
+    
+    if (newStock <= 0) {
+        stockSpan.className = 'stock-critical';
+        stockSpan.textContent = 'Out of Stock';
+    } else if (newStock <= 10) {
+        stockSpan.className = 'stock-warning';
+        stockSpan.textContent = `Low Stock (${newStock} remaining)`;
+    } else {
+        stockSpan.className = 'stock-good';
+        stockSpan.textContent = `In Stock (${newStock} units)`;
+    }
+}
+
+function filterProducts(type) {
+    const cards = document.querySelectorAll('.product-card');
+    cards.forEach(card => {
+        const stock = parseInt(card.dataset.stock);
+        let show = false;
+        
+        switch(type) {
+            case 'out':
+                show = stock <= 0;
+                break;
+            case 'low':
+                show = stock > 0 && stock <= 10;
+                break;
+            default:
+                show = true;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+</script>
+{% endblock %}
