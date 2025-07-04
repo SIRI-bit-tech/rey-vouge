@@ -89,6 +89,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'defender.middleware.FailedLoginMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'core.middleware.GDPRComplianceMiddleware',  # Add GDPR compliance middleware
 ]
 
 if not DEBUG:
@@ -104,23 +105,17 @@ ROOT_URLCONF = 'rey_vogue.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': False,
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.error_tracking_settings',
                 'core.context_processors.breadcrumbs',
                 'core.context_processors.google_analytics',
-            ],
-            'loaders': [
-                ('django.template.loaders.cached.Loader', [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                ]),
+                'core.context_processors.gdpr_context',
             ],
         },
     },
@@ -410,8 +405,7 @@ IMAGE_UPLOAD_MAX_SIZE = (800, 800)  # Maximum image dimensions
 IMAGE_QUALITY = 85  # JPEG quality
 IMAGE_FORMATS = ['JPEG', 'PNG']  # Allowed image formats
 
-# Bugsnag settings
-BUGSNAG_API_KEY = os.getenv('BUGSNAG_API_KEY')
+
 
 # Payment Settings
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', 'your-secret-key-here')

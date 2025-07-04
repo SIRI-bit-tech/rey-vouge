@@ -26,12 +26,19 @@ class CustomUserCreationForm(UserCreationForm):
     )
     terms = forms.BooleanField(
         required=True,
-        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+        error_messages={
+            'required': 'You must accept the Terms and Conditions to register.'
+        }
     )
 
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'password1', 'password2', 'terms')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['terms'].label = 'I agree to the Terms and Conditions'
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

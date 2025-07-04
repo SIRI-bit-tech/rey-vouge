@@ -306,8 +306,9 @@
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="{% url 'core:about' %}" class="hover:text-accent">About Us</a></li>
                         <li><a href="{% url 'core:contact' %}" class="hover:text-accent">Contact Us</a></li>
-                        <li><a href="#" class="hover:text-accent">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-accent">Terms & Conditions</a></li>
+                                        <li><a href="{% url 'core:privacy_policy' %}" class="hover:text-accent">Privacy Policy</a></li>
+                <li><a href="{% url 'core:terms_of_service' %}" class="hover:text-accent">Terms & Conditions</a></li>
+                <li><a href="{% url 'core:return_policy' %}" class="hover:text-accent">Return Policy</a></li>
                     </ul>
                 </div>
                 
@@ -530,5 +531,6 @@
         BugsnagPerformance.start({ apiKey: '{{ BUGSNAG_API_KEY }}' })
     </script>
     {% endif %}
-</body>
+    {% include "includes/cookie_consent.html" %}
+    </body>
 </html> 

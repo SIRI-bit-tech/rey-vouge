@@ -62,4 +62,19 @@ def google_analytics(request):
     return {
         'GA_TRACKING_ID': getattr(settings, 'GA_TRACKING_ID', None),
         'GA4_MEASUREMENT_ID': getattr(settings, 'GA4_MEASUREMENT_ID', None),
+    }
+
+def gdpr_context(request):
+    """Add GDPR-related context variables to all templates."""
+    return {
+        'cookies_accepted': getattr(request, 'cookies_accepted', False),
+        'privacy_url': request.build_absolute_uri('/privacy-policy/'),
+        'terms_url': request.build_absolute_uri('/terms-of-service/'),
+        'return_policy_url': request.build_absolute_uri('/return-policy/'),
+        'company_info': {
+            'name': 'Rey Premium Vogue',
+            'email': 'contact@reyvogue.com',
+            'phone': '+1 (555) 123-4567',
+            'address': '123 Fashion Street, Style City, ST 12345',
+        }
     } 

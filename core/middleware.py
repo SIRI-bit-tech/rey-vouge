@@ -195,3 +195,34 @@ class MonitoringMiddleware:
             details={'exception': str(exception)}
         )
         return None 
+
+class GDPRComplianceMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Check if user has consented to cookies
+        request.cookies_accepted = request.COOKIES.get('cookie_consent') == 'accepted'
+        
+        response = self.get_response(request)
+        
+        # If user hasn't made a choice about cookies yet, don't set any non-essential cookies
+        if not request.COOKIES.get('cookie_consent'):
+            # Remove any analytics or tracking cookies
+            cookies_to_remove = [
+                '_ga', '_gid',  # Google Analytics
+                '_fbp',  # Facebook Pixel
+                '_pin_unauth',  # Pinterest
+                'personalization_id',  # Twitter
+            ]
+            for cookie in cookies_to_remove:
+                if cookie in request.COOKIES:
+                    response.delete_cookie(cookie)
+        
+        return response
+
+    def process_template_response(self, request, response):
+        # Add GDPR context to all template responses
+        if hasattr(response, 'context_data'):
+            response.context_data['cookies_accepted'] = request.cookies_accepted
+        return response 

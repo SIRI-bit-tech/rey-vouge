@@ -435,3 +435,34 @@ def custom_404(request, exception):
 
 def custom_500(request):
     return render(request, 'core/errors/500.html', status=500)
+
+def privacy_policy(request):
+    context = {
+        'last_updated': '2024-03-20',  # Update this when the policy changes
+        'contact_email': 'privacy@reyvogue.com',
+        'contact_phone': '+1 (555) 123-4567',
+        'contact_address': '123 Fashion Street, Style City, ST 12345'
+    }
+    return render(request, 'core/legal/privacy_policy.html', context)
+
+def terms_of_service(request):
+    context = {
+        'last_updated': '2024-03-20',  # Update this when the terms change
+        'contact_email': 'legal@reyvogue.com',
+        'contact_phone': '+1 (555) 123-4567',
+        'contact_address': '123 Fashion Street, Style City, ST 12345',
+        'governing_jurisdiction': 'State of California, United States'
+    }
+    return render(request, 'core/legal/terms_of_service.html', context)
+
+def return_policy(request):
+    context = {
+        'last_updated': '2024-03-20',  # Update this when the policy changes
+        'contact_email': 'returns@reyvogue.com',
+        'contact_phone': '+1 (555) 123-4567',
+        'contact_address': '123 Fashion Street, Style City, ST 12345',
+        'company_name': 'Rey Premium Vogue',
+        'return_address': '123 Fashion Street, Style City, ST 12345',
+        'refund_days': '5-10'
+    }
+    return render(request, 'core/legal/return_policy.html', context)

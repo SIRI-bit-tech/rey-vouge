@@ -1,0 +1,100 @@
+{% if not request.COOKIES.cookie_consent %}
+<div id="cookie-consent-banner" class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm text-white p-6 z-50 transform transition-transform duration-500 ease-in-out translate-y-0 shadow-xl border-t border-gray-700">
+    <div class="container mx-auto max-w-6xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="flex-1 space-y-4">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">We Value Your Privacy</h3>
+                        <p class="text-gray-300 text-sm md:text-base leading-relaxed">
+                            We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 
+                            By clicking "Accept All", you consent to our use of cookies. 
+                            <a href="{% url 'core:privacy_policy' %}" class="text-accent hover:text-accent/90 underline underline-offset-2 font-medium">
+                                Learn more
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 text-sm">
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <input type="checkbox" checked disabled class="form-checkbox text-accent rounded border-gray-500 cursor-not-allowed">
+                        <span class="text-gray-300">Essential (Required)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <input type="checkbox" id="analytics-consent" class="form-checkbox text-accent rounded border-gray-500">
+                        <span class="text-gray-300 group-hover:text-white transition-colors">Analytics</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <input type="checkbox" id="marketing-consent" class="form-checkbox text-accent rounded border-gray-500">
+                        <span class="text-gray-300 group-hover:text-white transition-colors">Marketing</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-3 min-w-[200px]">
+                <button onclick="acceptAllCookies()" class="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+                    Accept All
+                </button>
+                <button onclick="acceptEssentialOnly()" class="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+                    Essential Only
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    function acceptAllCookies() {
+        setCookie('cookie_consent', 'accepted_all', 365);
+        setCookie('analytics_consent', 'true', 365);
+        setCookie('marketing_consent', 'true', 365);
+        hideBanner();
+        if (typeof enableAnalytics === 'function') {
+            enableAnalytics();
+        }
+    }
+
+    function acceptEssentialOnly() {
+        setCookie('cookie_consent', 'essential_only', 365);
+        setCookie('analytics_consent', 'false', 365);
+        setCookie('marketing_consent', 'false', 365);
+        hideBanner();
+        if (typeof disableAnalytics === 'function') {
+            disableAnalytics();
+        }
+    }
+
+    function hideBanner() {
+        const banner = document.getElementById('cookie-consent-banner');
+        banner.classList.add('translate-y-full');
+        setTimeout(() => {
+            banner.style.display = 'none';
+        }, 500);
+    }
+
+    // Initialize checkboxes based on existing cookies
+    document.addEventListener('DOMContentLoaded', function() {
+        const analyticsCookie = document.cookie.includes('analytics_consent=true');
+        const marketingCookie = document.cookie.includes('marketing_consent=true');
+        
+        document.getElementById('analytics-consent').checked = analyticsCookie;
+        document.getElementById('marketing-consent').checked = marketingCookie;
+    });
+</script>
+{% endif %} 

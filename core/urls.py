@@ -17,4 +17,9 @@ urlpatterns = [
     path('store-locations/', views.store_locations, name='store_locations'),
     path('promotions/', views.promotions, name='promotions'),
     path('log-javascript-error/', views.log_javascript_error, name='log_javascript_error'),
+    
+    # Legal pages
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('return-policy/', views.return_policy, name='return_policy'),
 ] 
